@@ -23,11 +23,12 @@ create index service_sys_sys_name on service_sys (sys_name);
 接受者黑名单
 
 
+邮件发件箱配置表
+    * @param fromAccount 发送人的邮箱帐号，不能为空
+     * @param fromName    发送人的名称，可以为空
+     * @param password    发送人的邮箱密码，不能为空
+
 3.7.8-alpine, 3.7-alpine, 3-alpine, alpine (3.7/alpine/Dockerfile)
-
-
-
-
 --------------------------------------------------------------------------------------------------------------------------*/
 
 

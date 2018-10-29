@@ -2,6 +2,7 @@ package org.clever.notification;
 
 import lombok.extern.slf4j.Slf4j;
 import org.mybatis.spring.annotation.MapperScan;
+import org.springframework.amqp.rabbit.annotation.EnableRabbit;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
@@ -15,6 +16,7 @@ import java.util.TimeZone;
  * Created by lzw on 2017/2/25.
  */
 @Slf4j
+@EnableRabbit
 @EnableDiscoveryClient
 @EnableTransactionManagement
 @MapperScan("org.clever.notification.mapper")

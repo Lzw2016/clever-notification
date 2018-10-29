@@ -22,7 +22,10 @@ public class RabbitMQTest {
     public void t01() throws IOException, TimeoutException {
         ConnectionFactory factory = new ConnectionFactory();
         factory.setHost("39.108.68.132");
-        factory.setPort(25672);
+        factory.setPort(25673);
+//        factory.setVirtualHost("clever-notification");
+        factory.setUsername("admin");
+        factory.setPassword("lizhiwei");
         Connection connection = factory.newConnection();
         Channel channel = connection.createChannel();
 

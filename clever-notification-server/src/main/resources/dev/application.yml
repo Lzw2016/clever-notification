@@ -69,6 +69,63 @@ spring:
       max-lifetime: 1800000
       connection-test-query: SELECT 1
 
+  rabbitmq: #--------------------------------------------------------- RabbitMQ 配置
+    host: 39.108.68.132
+    port: 25673
+    ssl:
+      enabled: false
+    username: admin
+    password: lizhiwei
+    virtual-host: clever-notification
+    connection-timeout: 15s
+    dynamic: true
+    publisher-confirms: true
+    publisher-returns: true
+    template:
+      retry:
+        enabled: true
+        max-attempts: 3
+        initial-interval: 100ms
+        multiplier: 1.5
+        max-interval: 10000ms
+      mandatory: true
+      routing-key:
+      exchange:
+      receive-timeout: 15s
+      reply-timeout: 15s
+    listener:
+      type: direct
+      simple:
+        retry:
+          stateless: true
+          enabled: true
+          max-attempts: 3
+          initial-interval: 100ms
+          multiplier: 1.5
+          max-interval: 10000ms
+        auto-startup: true
+        acknowledge-mode: manual
+        prefetch: 8
+        default-requeue-rejected: false
+        idle-event-interval: 10s
+        concurrency: 8
+        max-concurrency: 16
+        transaction-size: 8
+      direct:
+        retry:
+          stateless: true
+          enabled: true
+          max-attempts: 3
+          initial-interval: 100ms
+          multiplier: 1.5
+          max-interval: 10000ms
+        auto-startup: true
+        acknowledge-mode: manual
+        prefetch: 8
+        default-requeue-rejected: false
+        idle-event-interval: 10s
+        consumers-per-queue: 16
+
   cloud: #------------------------------------------------------------ Spring Cloud
     consul:
       enabled: false
@@ -130,6 +187,8 @@ mybatis-plus:
 ###################################################################################
 ### 自定义配置
 ###################################################################################
+#clever:
+#  config:
 
 
 
