@@ -17,8 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/test")
 public class TestController {
 
-//    //    @Autowired
-////    private RabbitAdmin rabbitAdmin;
 //    @Autowired
 //    private RabbitReceiver rabbitReceiver;
 //

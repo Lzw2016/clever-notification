@@ -21,11 +21,8 @@ public class RabbitMQTest {
     @Test
     public void t01() throws IOException, TimeoutException {
         ConnectionFactory factory = new ConnectionFactory();
-        factory.setHost("39.108.68.132");
-        factory.setPort(25673);
-//        factory.setVirtualHost("clever-notification");
-        factory.setUsername("admin");
-        factory.setPassword("lizhiwei");
+        factory.setHost("192.168.159.131");
+        factory.setPort(5672);
         Connection connection = factory.newConnection();
         Channel channel = connection.createChannel();
 
@@ -33,10 +30,14 @@ public class RabbitMQTest {
         channel.queueDeclare(QUEUE_NAME, false, false, false, null);
         String message = "Hello World!";
 
-        //发布消息
-        channel.basicPublish("", QUEUE_NAME, null, message.getBytes("UTF-8"));
-        System.out.println(" [x] Sent '" + message + "'");
-
+        int count = 10000 * 100;
+        for (int i = 0; i < count; i++) {
+            //发布消息
+            channel.basicPublish("", QUEUE_NAME, null, String.format("%s%s", message, i).getBytes("UTF-8"));
+            if (i % 1000 == 0) {
+                log.info("### {}", i);
+            }
+        }
         //关闭连接
         channel.close();
         connection.close();

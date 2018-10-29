@@ -2,9 +2,8 @@ package org.clever.notification.rabbit.producer;
 
 import lombok.extern.slf4j.Slf4j;
 import org.clever.common.utils.SnowFlake;
+import org.clever.notification.config.RabbitBeanConfig;
 import org.clever.notification.model.EmailMessage;
-import org.clever.notification.rabbit.ExchangeConstant;
-import org.clever.notification.rabbit.RoutingKeyConstant;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.support.CorrelationData;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +28,6 @@ public class SendEmailMessage {
     public void send(EmailMessage emailMessage) {
         emailMessage.setId(snowFlake.nextId());
         CorrelationData correlationData = new CorrelationData(emailMessage.getId().toString());
-        rabbitTemplate.convertAndSend(ExchangeConstant.MessageExchange, RoutingKeyConstant.EmailMessageKey, emailMessage, correlationData);
+        rabbitTemplate.convertAndSend(RabbitBeanConfig.MessageExchange, RabbitBeanConfig.EmailRoutingKey, emailMessage, correlationData);
     }
 }
