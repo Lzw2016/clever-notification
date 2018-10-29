@@ -2,14 +2,9 @@ package org.clever.notification.config;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
-
-import javax.annotation.PostConstruct;
-import java.util.List;
 
 /**
  * 作者： lzw<br/>
@@ -96,7 +91,7 @@ public class RabbitBeanConfig {
     }
 
     @Bean("emailQueue")
-    @DependsOn({"deadExchange", "emailQueueDead", "emailQueueDeadBinding"})
+//    @DependsOn({"deadExchange", "emailQueueDead", "emailQueueDeadBinding"})
     public Queue emailQueue() {
         return QueueBuilder.durable(EmailMessageQueue)
                 .withArgument(DEAD_LETTER_QUEUE_KEY, MessageExchangeDead)
@@ -105,7 +100,7 @@ public class RabbitBeanConfig {
     }
 
     @Bean("smsQueue")
-    @DependsOn({"deadExchange", "smsQueueDead", "smsQueueDeadBinding"})
+//    @DependsOn({"deadExchange", "smsQueueDead", "smsQueueDeadBinding"})
     public Queue smsQueue() {
         return QueueBuilder.durable(SmsMessageQueue)
                 .withArgument(DEAD_LETTER_QUEUE_KEY, MessageExchangeDead)
@@ -160,30 +155,30 @@ public class RabbitBeanConfig {
     //     初始化队列
     // -------------------------------------------------------------------------------------------------------------------------------------
 
-    @Autowired
-    private AmqpAdmin amqpAdmin;
-    @Autowired
-    private List<Queue> queues;
-    @Autowired
-    private List<Exchange> exchanges;
-    @Autowired
-    private List<Binding> bindings;
+//    @Autowired
+//    private AmqpAdmin amqpAdmin;
+//    @Autowired
+//    private List<Queue> queues;
+//    @Autowired
+//    private List<Exchange> exchanges;
+//    @Autowired
+//    private List<Binding> bindings;
 
-    @PostConstruct
-    public void init() {
-        log.info("################ {} {} {}", queues.size(), exchanges.size(), bindings.size());
-        for (Exchange exchange : exchanges) {
-            log.info("### exchange={}", exchange.getName());
-            amqpAdmin.declareExchange(exchange);
-        }
-        for (Queue queue : queues) {
-            log.info("### queue={}", queue.getName());
-            amqpAdmin.declareQueue(queue);
-        }
-        for (Binding binding : bindings) {
-            log.info("### binding={} RoutingKey={}", binding.getExchange(), binding.getRoutingKey());
-            amqpAdmin.declareBinding(binding);
-        }
-        log.info("##################### 完成");
-    }
+//    @PostConstruct
+//    public void init() {
+//        log.info("################ {} {} {}", queues.size(), exchanges.size(), bindings.size());
+//        for (Exchange exchange : exchanges) {
+//            log.info("### exchange={}", exchange.getName());
+//            amqpAdmin.declareExchange(exchange);
+//        }
+//        for (Queue queue : queues) {
+//            log.info("### queue={}", queue.getName());
+//            amqpAdmin.declareQueue(queue);
+//        }
+//        for (Binding binding : bindings) {
+//            log.info("### binding={} RoutingKey={}", binding.getExchange(), binding.getRoutingKey());
+//            amqpAdmin.declareBinding(binding);
+//        }
+//        log.info("##################### 完成");
+//    }
 }
