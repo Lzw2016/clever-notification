@@ -69,7 +69,7 @@ create table sys_bind_email
 (
     id              bigint          not null        auto_increment                          comment '主键id',
     sys_name        varchar(127)    not null                                                comment '系统名称(全局使用“root”名称)',
-    account         varchar(255)    not null                                                comment '发送人的邮箱帐号',
+    account         varchar(255)    not null        unique                                  comment '发送人的邮箱帐号',
     password        varchar(255)    not null                                                comment '发送人的邮箱密码',
     from_name       varchar(127)                                                            comment '发送人的名称',
     smtp_host       varchar(127)    not null                                                comment 'SMTP服务器地址',
@@ -81,6 +81,16 @@ create table sys_bind_email
 ) comment = '系统邮件发送者帐号';
 create index sys_bind_email_sys_name on sys_bind_email (sys_name);
 create index sys_bind_email_account on sys_bind_email (account);
+
+
+
+
+
+
+
+
+
+
 
 
 /*------------------------------------------------------------------------------------------------------------------------
