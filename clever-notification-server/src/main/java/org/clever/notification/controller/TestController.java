@@ -47,4 +47,6 @@ public class TestController {
         emailMessage.setSubject("邮件通知");
         return sendEmailMessage.send(emailMessage);
     }
+
+    // TODO 直接发送不走MQ
 }
