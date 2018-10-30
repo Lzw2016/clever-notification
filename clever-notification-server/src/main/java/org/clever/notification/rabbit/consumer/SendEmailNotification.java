@@ -19,10 +19,11 @@ public class SendEmailNotification {
     @RabbitHandler
     public void send(EmailMessage emailMessage) {
         try {
+            // TODO 使用Redis或者数据库去重 MessageID
             log.info("### 发送邮件 {}", emailMessage);
         } catch (Throwable e) {
             // TODO 异步通知失败
-            log.info("### 发送邮件失败 {}", emailMessage.getId());
+            log.info("### 发送邮件失败 {}", emailMessage.getSendId());
             throw e;
         }
         // TODO 异步通知成功

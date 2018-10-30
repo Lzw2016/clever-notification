@@ -49,7 +49,7 @@
 //        Message msg = MessageBuilder.createMessage(message, mhs);
 //        rabbitTemplate.setConfirmCallback(confirmCallback);
 //        rabbitTemplate.setReturnCallback(returnCallback);
-//        //id + 时间戳 全局唯一
+//        //sendId + 时间戳 全局唯一
 //        CorrelationData correlationData = new CorrelationData("1234567890");
 //        rabbitTemplate.convertAndSend("exchange-1", "springboot.abc", msg, correlationData);
 //        log.info("RabbitTemplate -> {}", rabbitTemplate);

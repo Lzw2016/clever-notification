@@ -22,16 +22,19 @@ public class SendEmailMessage {
     @Autowired
     private RabbitTemplate rabbitTemplate;
 
+    // TODO 批量操作
+//    BatchingRabbitTemplate
+
     /**
      * 发送消息
      */
     public EmailMessage send(EmailMessage emailMessage) {
-        emailMessage.setId(snowFlake.nextId());
+        emailMessage.setSendId(snowFlake.nextId());
         rabbitTemplate.convertAndSend(
                 RabbitBeanConfig.MessageExchange,
                 String.format("%s.%s", RabbitBeanConfig.EmailRoutingKey, emailMessage.getSysName()),
                 emailMessage,
-                new CorrelationData(emailMessage.getId().toString())
+                new CorrelationData(emailMessage.getSendId().toString())
         );
         return emailMessage;
     }

@@ -15,9 +15,9 @@ import java.util.Map;
 public class BaseMessage implements Serializable {
 
     /**
-     * 消息ID (全局唯一)
+     * 消息发送ID (全局唯一)
      */
-    private Long id;
+    private Long sendId;
 
     /**
      * 消息所属系统名称
