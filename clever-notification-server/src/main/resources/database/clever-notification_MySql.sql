@@ -21,7 +21,7 @@ create index service_sys_sys_name on service_sys (sys_name);
 消息模版
 消息发送日志
 接受者黑名单
-
+系统邮件发送帐号表
 
 邮件发件箱配置表
     * @param fromAccount 发送人的邮箱帐号，不能为空

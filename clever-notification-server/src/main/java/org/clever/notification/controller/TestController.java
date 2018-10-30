@@ -40,12 +40,11 @@ public class TestController {
     private SendEmailMessage sendEmailMessage;
 
     @GetMapping("/02")
-    public void test01() {
-        for (int i = 1; i <= 1000; i++) {
-            EmailMessage emailMessage = new EmailMessage();
-            emailMessage.setContent("邮件消息" + i);
-            emailMessage.setSubject("邮件通知" + i);
-            sendEmailMessage.send(emailMessage);
-        }
+    public EmailMessage test01() {
+        EmailMessage emailMessage = new EmailMessage();
+        emailMessage.setSysName("testSys");
+        emailMessage.setContent("邮件消息");
+        emailMessage.setSubject("邮件通知");
+        return sendEmailMessage.send(emailMessage);
     }
 }

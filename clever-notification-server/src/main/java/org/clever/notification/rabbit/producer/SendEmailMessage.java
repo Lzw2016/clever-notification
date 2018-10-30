@@ -25,9 +25,14 @@ public class SendEmailMessage {
     /**
      * 发送消息
      */
-    public void send(EmailMessage emailMessage) {
+    public EmailMessage send(EmailMessage emailMessage) {
         emailMessage.setId(snowFlake.nextId());
-        CorrelationData correlationData = new CorrelationData(emailMessage.getId().toString());
-        rabbitTemplate.convertAndSend(RabbitBeanConfig.MessageExchange, RabbitBeanConfig.EmailRoutingKey, emailMessage, correlationData);
+        rabbitTemplate.convertAndSend(
+                RabbitBeanConfig.MessageExchange,
+                String.format("%s.%s", RabbitBeanConfig.EmailRoutingKey, emailMessage.getSysName()),
+                emailMessage,
+                new CorrelationData(emailMessage.getId().toString())
+        );
+        return emailMessage;
     }
 }

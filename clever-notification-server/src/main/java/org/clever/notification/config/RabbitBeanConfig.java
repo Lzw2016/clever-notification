@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Configuration;
  * 作者： lzw<br/>
  * 创建时间：2018-10-29 14:36 <br/>
  */
+@SuppressWarnings("WeakerAccess")
 @Configuration
 @Slf4j
 public class RabbitBeanConfig {
@@ -60,14 +61,14 @@ public class RabbitBeanConfig {
     // -------------------------------------------------------------------------------------------------------------------------------------
 
     /**
-     * 邮件路由key
+     * 邮件路由key - 前缀
      */
-    public static final String EmailRoutingKey = "notification.email.#";
+    public static final String EmailRoutingKey = "notification.email";
 
     /**
-     * 短信路由key
+     * 短信路由key - 前缀
      */
-    public static final String SmsRoutingKey = "notification.sms.#";
+    public static final String SmsRoutingKey = "notification.sms";
 
     /**
      * 邮件路由key - 死信路由key
@@ -91,7 +92,6 @@ public class RabbitBeanConfig {
     }
 
     @Bean("emailQueue")
-//    @DependsOn({"deadExchange", "emailQueueDead", "emailQueueDeadBinding"})
     public Queue emailQueue() {
         return QueueBuilder.durable(EmailMessageQueue)
                 .withArgument(DEAD_LETTER_QUEUE_KEY, MessageExchangeDead)
@@ -100,7 +100,6 @@ public class RabbitBeanConfig {
     }
 
     @Bean("smsQueue")
-//    @DependsOn({"deadExchange", "smsQueueDead", "smsQueueDeadBinding"})
     public Queue smsQueue() {
         return QueueBuilder.durable(SmsMessageQueue)
                 .withArgument(DEAD_LETTER_QUEUE_KEY, MessageExchangeDead)
@@ -110,12 +109,12 @@ public class RabbitBeanConfig {
 
     @Bean
     public Binding emailQueueBinding(@Qualifier("emailQueue") Queue emailQueue, @Qualifier("messageTopicExchange") Exchange messageTopicExchange) {
-        return BindingBuilder.bind(emailQueue).to(messageTopicExchange).with(EmailRoutingKey).noargs();
+        return BindingBuilder.bind(emailQueue).to(messageTopicExchange).with(String.format("%s.#", EmailRoutingKey)).noargs();
     }
 
     @Bean
     public Binding smsQueueBinding(@Qualifier("smsQueue") Queue smsQueue, @Qualifier("messageTopicExchange") Exchange messageTopicExchange) {
-        return BindingBuilder.bind(smsQueue).to(messageTopicExchange).with(SmsRoutingKey).noargs();
+        return BindingBuilder.bind(smsQueue).to(messageTopicExchange).with(String.format("%s.#", SmsRoutingKey)).noargs();
     }
 
     //--------------------------------------------------------------------------------------------------------------------------------------
@@ -148,7 +147,7 @@ public class RabbitBeanConfig {
 
     @Bean("smsQueueDeadBinding")
     public Binding smsQueueDeadBinding(@Qualifier("smsQueueDead") Queue smsQueueDead, @Qualifier("deadExchange") Exchange deadExchange) {
-        return BindingBuilder.bind(smsQueueDead).to(deadExchange).with(EmailDeadRoutingKey).noargs();
+        return BindingBuilder.bind(smsQueueDead).to(deadExchange).with(SmsDeadRoutingKey).noargs();
     }
 
     //--------------------------------------------------------------------------------------------------------------------------------------

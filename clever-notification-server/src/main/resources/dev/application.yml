@@ -98,13 +98,13 @@ spring:
       simple:
         retry:
           stateless: true
-          enabled: true
+          enabled: false
           max-attempts: 3
           initial-interval: 100ms
           multiplier: 1.5
           max-interval: 10000ms
         auto-startup: true
-        acknowledge-mode: manual
+        acknowledge-mode: auto
         prefetch: 8
         default-requeue-rejected: false
         idle-event-interval: 10s
@@ -114,13 +114,13 @@ spring:
       direct:
         retry:
           stateless: true
-          enabled: true
+          enabled: false
           max-attempts: 3
           initial-interval: 100ms
           multiplier: 1.5
           max-interval: 10000ms
         auto-startup: true
-        acknowledge-mode: manual
+        acknowledge-mode: auto
         prefetch: 8
         default-requeue-rejected: false
         idle-event-interval: 10s
@@ -187,26 +187,8 @@ mybatis-plus:
 ###################################################################################
 ### 自定义配置
 ###################################################################################
-#clever:
-#  config:
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+clever:
+  config:
+    snow-flake-config:
+      data-center-id: 0
+      machine-id: 0

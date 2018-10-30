@@ -1,16 +1,11 @@
 package org.clever.notification.rabbit.consumer;
 
-import com.rabbitmq.client.Channel;
 import lombok.extern.slf4j.Slf4j;
 import org.clever.notification.config.RabbitBeanConfig;
 import org.clever.notification.model.EmailMessage;
 import org.springframework.amqp.rabbit.annotation.RabbitHandler;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
-import org.springframework.amqp.support.AmqpHeaders;
-import org.springframework.messaging.Message;
 import org.springframework.stereotype.Component;
-
-import java.io.IOException;
 
 /**
  * 作者： lzw<br/>
@@ -22,14 +17,20 @@ import java.io.IOException;
 public class SendEmailNotification {
 
     @RabbitHandler
-    public void send(EmailMessage emailMessage, Message message, Channel channel) throws IOException {
+    public void send(EmailMessage emailMessage) {
         try {
-            Thread.sleep(1000 * 3);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+            log.info("### 发送邮件 {}", emailMessage);
+        } catch (Throwable e) {
+            // TODO 异步通知失败
+            log.info("### 发送邮件失败 {}", emailMessage.getId());
+            throw e;
         }
-        log.info("### 发送邮件 {}", emailMessage);
+        // TODO 异步通知成功
+
+        // 抛出异常 Nack
+//        throw new BusinessException("发送失败");
         //手动ACK
-        channel.basicAck((long) message.getHeaders().get(AmqpHeaders.DELIVERY_TAG), false);
+//        channel.basicAck(deliveryTag, false);
+//        channel.basicNack(deliveryTag, false, false);
     }
 }

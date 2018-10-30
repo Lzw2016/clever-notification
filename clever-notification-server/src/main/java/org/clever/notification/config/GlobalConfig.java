@@ -16,7 +16,7 @@ public class GlobalConfig {
     /**
      * 雪花算法配置
      */
-    private SnowFlakeConfig snowFlakeConfig = new SnowFlakeConfig();
+    private SnowFlakeConfig snowFlakeConfig;
 
     @Data
     public static class SnowFlakeConfig {
