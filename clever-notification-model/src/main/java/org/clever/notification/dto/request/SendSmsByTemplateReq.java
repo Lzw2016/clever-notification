@@ -22,6 +22,9 @@ import java.util.Map;
 @Data
 public class SendSmsByTemplateReq extends BaseRequest {
 
+    @ApiModelProperty("是否是异步发送(默认异步)，true:异步；false:同步")
+    private boolean async = true;
+
     @ApiModelProperty("异步发送时的回调接口")
     @Length(max = 1024)
     private String asyncCallBack;
