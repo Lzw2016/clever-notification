@@ -113,7 +113,7 @@ public class SendEmailService {
      * 发送邮件
      */
     @Transactional
-    public boolean senEmail(EmailMessage emailMessage) {
+    public boolean sendEmail(EmailMessage emailMessage) {
         // TODO 记录发送日志
         try {
             SpringSendMailUtils springSendMailUtils = getSendMailUtils(emailMessage.getSysName());

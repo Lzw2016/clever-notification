@@ -44,7 +44,7 @@ public class SendEmailMessage extends BaseSendMessage<EmailMessage> {
     @Override
     protected void internalSend(EmailMessage emailMessage) {
         log.info("### 同步发送邮件 {}", emailMessage.getSendId());
-        sendEmailService.senEmail(emailMessage);
+        sendEmailService.sendEmail(emailMessage);
         log.info("### 同步发送邮件 [成功] {}", emailMessage.getSendId());
     }
 }

@@ -44,13 +44,13 @@ public class SmsTest {
         //组装请求对象-具体描述见控制台-文档部分内容
         SendSmsRequest request = new SendSmsRequest();
         //必填:待发送手机号
-        request.setPhoneNumbers("13260658831");
+        request.setPhoneNumbers("17607128210");
         //必填:短信签名-可在短信控制台中找到
         request.setSignName("Periscope");
         //必填:短信模板-可在短信控制台中找到
         request.setTemplateCode("SMS_149418310");
         //可选:模板中的变量替换JSON串,如模板内容为"亲爱的${name},您的验证码为${code}"时,此处的值为
-        request.setTemplateParam("{\"name\":\"Tom\", \"code\":\"123\"}");
+        request.setTemplateParam("{\"name\":\"Tom\", \"code\":\"1478\"}");
 
         //选填-上行短信扩展码(无特殊需求用户请忽略此字段)
         //request.setSmsUpExtendCode("90997");
@@ -74,6 +74,12 @@ public class SmsTest {
         System.out.println("Message=" + response.getMessage());
         System.out.println("RequestId=" + response.getRequestId());
         System.out.println("BizId=" + response.getBizId());
+
+//        短信接口返回的数据----------------
+//        Code=OK
+//        Message=OK
+//        RequestId=DCDF6FAE-4F10-4EF4-94AB-3996BE6A6E9B
+//        BizId=522309440992405683^0
     }
 
 
@@ -91,7 +97,7 @@ public class SmsTest {
         //组装请求对象
         QuerySendDetailsRequest request = new QuerySendDetailsRequest();
         //必填-号码
-        request.setPhoneNumber("15000000000");
+        request.setPhoneNumber("17607128210");
         //可选-流水号
 //        request.setBizId(bizId);
         //必填-发送日期 支持30天内记录查询，格式yyyyMMdd
@@ -128,5 +134,20 @@ public class SmsTest {
         }
         System.out.println("TotalCount=" + querySendDetailsResponse.getTotalCount());
         System.out.println("RequestId=" + querySendDetailsResponse.getRequestId());
+
+//        短信明细查询接口返回数据----------------
+//        Code=OK
+//        Message=OK
+//        SmsSendDetailDTO[0]:
+//        Content=【Periscope】您正在申请手机注册，验证码为：123，5分钟内有效！
+//        ErrCode=DELIVRD
+//        OutId=yourOutId
+//        PhoneNum=13260658831
+//        ReceiveDate=2018-10-31 21:26:48
+//        SendDate=2018-10-31 21:26:45
+//        SendStatus=3
+//        Template=SMS_149418310
+//        TotalCount=1
+//        RequestId=E1937548-5EE6-402C-8E0B-C3195D56F723
     }
 }

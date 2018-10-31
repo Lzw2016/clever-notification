@@ -64,6 +64,12 @@ public abstract class BaseMessage implements Serializable {
     protected String content;
 
     /**
+     * 是否已经使用“模板需要参数”填充模版
+     */
+    @Getter
+    private boolean paramsFillContent = false;
+
+    /**
      * 验证消息配置是否正确
      */
     public void valid() {
@@ -82,9 +88,15 @@ public abstract class BaseMessage implements Serializable {
      */
     @JsonIgnore
     public String generateContent() {
-        if (StringUtils.isBlank(content)) {
+        if (paramsFillContent) {
+            return content;
+        }
+        if (StringUtils.isNotBlank(content)) {
+            content = StringTemplateUtils.getContentByStrTemplate(content, params);
+        } else {
             content = StringTemplateUtils.getContentByTemplateName(templateName, params);
         }
+        paramsFillContent = true;
         return content;
     }
 }

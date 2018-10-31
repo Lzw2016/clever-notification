@@ -2,8 +2,11 @@ package org.clever.notification.model;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.apache.commons.lang3.StringUtils;
+import org.clever.common.exception.BusinessException;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 作者： lzw<br/>
@@ -32,6 +35,14 @@ public class SmsMessage extends BaseMessage {
      */
     @Override
     public void valid() {
-        // TODO 验证
+        super.valid();
+        // 删除重复 删除空
+        if (to != null && to.size() > 0) {
+            to = to.stream().filter(StringUtils::isNotBlank).distinct().collect(Collectors.toList());
+        }
+        // 校验
+        if (to == null || to.size() <= 0) {
+            throw new BusinessException("接收手机号，不能为空");
+        }
     }
 }

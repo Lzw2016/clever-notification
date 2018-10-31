@@ -28,7 +28,7 @@ public class SendEmailNotification {
             // TODO 使用Redis或者数据库去重 MessageID
             // TODO 黑名单限制
             // TODO 发送频率限制
-            if (sendEmailService.senEmail(emailMessage)) {
+            if (sendEmailService.sendEmail(emailMessage)) {
                 // TODO 异步通知成功
                 log.info("### 处理发送邮件 [成功] {}", emailMessage.getSendId());
             } else {

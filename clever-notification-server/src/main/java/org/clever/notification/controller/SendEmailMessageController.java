@@ -4,6 +4,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.clever.common.exception.BusinessException;
 import org.clever.common.utils.mapper.BeanMapper;
+import org.clever.notification.dto.request.SendEmailByContentReq;
 import org.clever.notification.dto.request.SendEmailByTemplateReq;
 import org.clever.notification.dto.response.SendEmailRes;
 import org.clever.notification.model.EmailMessage;
@@ -35,7 +36,7 @@ public class SendEmailMessageController {
 
     @ApiOperation("发送邮件(使用模版)")
     @PostMapping("/send/email/template")
-    public SendEmailRes senEmail(@RequestBody @Validated SendEmailByTemplateReq req) {
+    public SendEmailRes sendEmail(@RequestBody @Validated SendEmailByTemplateReq req) {
         EmailMessage emailMessage = BeanMapper.mapper(req, EmailMessage.class);
         emailMessage.valid();
         // 校验消息模版是否存在
@@ -46,8 +47,25 @@ public class SendEmailMessageController {
         if (!sendEmailService.sendMailUtilsExists(emailMessage.getSysName())) {
             throw new BusinessException("验证发送邮件帐号未配置");
         }
-        // TODO 黑名单限制
-        // TODO 发送频率限制
+        if (req.isAsync()) {
+            // 异步
+            emailMessage = asyncSendEmailMessage.asyncSend(emailMessage);
+        } else {
+            // 同步
+            emailMessage = asyncSendEmailMessage.send(emailMessage);
+        }
+        return BeanMapper.mapper(emailMessage, SendEmailRes.class);
+    }
+
+    @ApiOperation("发送邮件(使用内容)")
+    @PostMapping("/send/email/content")
+    public SendEmailRes sendEmail(@RequestBody @Validated SendEmailByContentReq req) {
+        EmailMessage emailMessage = BeanMapper.mapper(req, EmailMessage.class);
+        emailMessage.valid();
+        // 验证发送邮件帐号是否已经配置
+        if (!sendEmailService.sendMailUtilsExists(emailMessage.getSysName())) {
+            throw new BusinessException("验证发送邮件帐号未配置");
+        }
         if (req.isAsync()) {
             // 异步
             emailMessage = asyncSendEmailMessage.asyncSend(emailMessage);

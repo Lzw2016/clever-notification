@@ -39,6 +39,8 @@ public abstract class BaseSendMessage<T extends BaseMessage> implements ISendMes
         baseMessage.generateContent();
         // 验证消息
         baseMessage.valid();
+        // TODO 黑名单限制
+        // TODO 发送频率限制
     }
 
     @Override
