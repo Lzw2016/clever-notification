@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.plugins.PaginationInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.PerformanceInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.SqlExplainInterceptor;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import freemarker.cache.StringTemplateLoader;
 import lombok.extern.slf4j.Slf4j;
 import org.clever.common.utils.SnowFlake;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
@@ -24,7 +25,7 @@ public class BeanConfiguration {
      * 分页插件
      */
     @Bean
-    public PaginationInterceptor paginationInterceptor() {
+    protected PaginationInterceptor paginationInterceptor() {
         PaginationInterceptor paginationInterceptor = new PaginationInterceptor();
 //        paginationInterceptor.setSqlParser()
 //        paginationInterceptor.setDialectClazz()
@@ -41,7 +42,7 @@ public class BeanConfiguration {
      * 如果version不对，就更新失败 <br />
      */
     @Bean
-    public OptimisticLockerInterceptor optimisticLockerInterceptor() {
+    protected OptimisticLockerInterceptor optimisticLockerInterceptor() {
         return new OptimisticLockerInterceptor();
     }
 
@@ -58,7 +59,7 @@ public class BeanConfiguration {
      */
     @Bean
     @Profile({"dev", "test"})
-    public PerformanceInterceptor performanceInterceptor() {
+    protected PerformanceInterceptor performanceInterceptor() {
         PerformanceInterceptor performanceInterceptor = new PerformanceInterceptor();
 //        performanceInterceptor.setFormat(true);
 //        performanceInterceptor.setMaxTime();
@@ -74,7 +75,7 @@ public class BeanConfiguration {
      */
     @Bean
     @Profile({"dev", "test"})
-    public SqlExplainInterceptor sqlExplainInterceptor() {
+    protected SqlExplainInterceptor sqlExplainInterceptor() {
         SqlExplainInterceptor sqlExplainInterceptor = new SqlExplainInterceptor();
 //        sqlExplainInterceptor.stopProceed
         return sqlExplainInterceptor;
@@ -84,16 +85,19 @@ public class BeanConfiguration {
      * 雪花算法实例
      */
     @Bean
-    public SnowFlake snowFlake(GlobalConfig globalConfig) {
+    protected SnowFlake snowFlake(GlobalConfig globalConfig) {
         GlobalConfig.SnowFlakeConfig snowFlakeConfig = globalConfig.getSnowFlakeConfig();
         log.info("### 雪花算法配置 {}", snowFlakeConfig);
         return new SnowFlake(snowFlakeConfig.getDataCenterId(), snowFlakeConfig.getMachineId());
     }
 
     @Bean
-    public Jackson2JsonMessageConverter jackson2JsonMessageConverter(ObjectMapper objectMapper) {
+    protected Jackson2JsonMessageConverter jackson2JsonMessageConverter(ObjectMapper objectMapper) {
         return new Jackson2JsonMessageConverter(objectMapper);
     }
-
-
+    
+    @Bean
+    protected StringTemplateLoader stringTemplateLoader() {
+        return new StringTemplateLoader();
+    }
 }

@@ -19,13 +19,18 @@ public class SmsMessage extends BaseMessage {
     private List<String> to;
 
     /**
-     * 设置短信内容，不能为空
+     * 设置消息内容
+     *
+     * @param content 消息内容
      */
-    private String content;
+    public void setContent(String content) {
+        this.content = content;
+    }
 
     /**
      * 验证消息配置是否正确
      */
+    @Override
     public void valid() {
         // TODO 验证
     }

@@ -85,14 +85,14 @@ public class RabbitBeanConfig {
     // -------------------------------------------------------------------------------------------------------------------------------------
 
     @Bean("messageTopicExchange")
-    public Exchange messageTopicExchange() {
+    protected Exchange messageTopicExchange() {
         return ExchangeBuilder.topicExchange(MessageExchange)
                 .durable(true)
                 .build();
     }
 
     @Bean("emailQueue")
-    public Queue emailQueue() {
+    protected Queue emailQueue() {
         return QueueBuilder.durable(EmailMessageQueue)
                 .withArgument(DEAD_LETTER_QUEUE_KEY, MessageExchangeDead)
                 .withArgument(DEAD_LETTER_ROUTING_KEY, EmailDeadRoutingKey)
@@ -100,7 +100,7 @@ public class RabbitBeanConfig {
     }
 
     @Bean("smsQueue")
-    public Queue smsQueue() {
+    protected Queue smsQueue() {
         return QueueBuilder.durable(SmsMessageQueue)
                 .withArgument(DEAD_LETTER_QUEUE_KEY, MessageExchangeDead)
                 .withArgument(DEAD_LETTER_ROUTING_KEY, SmsDeadRoutingKey)
@@ -108,12 +108,12 @@ public class RabbitBeanConfig {
     }
 
     @Bean
-    public Binding emailQueueBinding(@Qualifier("emailQueue") Queue emailQueue, @Qualifier("messageTopicExchange") Exchange messageTopicExchange) {
+    protected Binding emailQueueBinding(@Qualifier("emailQueue") Queue emailQueue, @Qualifier("messageTopicExchange") Exchange messageTopicExchange) {
         return BindingBuilder.bind(emailQueue).to(messageTopicExchange).with(String.format("%s.#", EmailRoutingKey)).noargs();
     }
 
     @Bean
-    public Binding smsQueueBinding(@Qualifier("smsQueue") Queue smsQueue, @Qualifier("messageTopicExchange") Exchange messageTopicExchange) {
+    protected Binding smsQueueBinding(@Qualifier("smsQueue") Queue smsQueue, @Qualifier("messageTopicExchange") Exchange messageTopicExchange) {
         return BindingBuilder.bind(smsQueue).to(messageTopicExchange).with(String.format("%s.#", SmsRoutingKey)).noargs();
     }
 
@@ -122,31 +122,31 @@ public class RabbitBeanConfig {
     // -------------------------------------------------------------------------------------------------------------------------------------
 
     @Bean("deadExchange")
-    public Exchange deadExchange() {
+    protected Exchange deadExchange() {
         return ExchangeBuilder.directExchange(MessageExchangeDead)
                 .durable(true)
                 .build();
     }
 
     @Bean("emailQueueDead")
-    public Queue emailQueueDead() {
+    protected Queue emailQueueDead() {
         return QueueBuilder.durable(EmailMessageQueueDead)
                 .build();
     }
 
     @Bean("smsQueueDead")
-    public Queue smsQueueDead() {
+    protected Queue smsQueueDead() {
         return QueueBuilder.durable(SmsMessageQueueDead)
                 .build();
     }
 
     @Bean("emailQueueDeadBinding")
-    public Binding emailQueueDeadBinding(@Qualifier("emailQueueDead") Queue emailQueueDead, @Qualifier("deadExchange") Exchange deadExchange) {
+    protected Binding emailQueueDeadBinding(@Qualifier("emailQueueDead") Queue emailQueueDead, @Qualifier("deadExchange") Exchange deadExchange) {
         return BindingBuilder.bind(emailQueueDead).to(deadExchange).with(EmailDeadRoutingKey).noargs();
     }
 
     @Bean("smsQueueDeadBinding")
-    public Binding smsQueueDeadBinding(@Qualifier("smsQueueDead") Queue smsQueueDead, @Qualifier("deadExchange") Exchange deadExchange) {
+    protected Binding smsQueueDeadBinding(@Qualifier("smsQueueDead") Queue smsQueueDead, @Qualifier("deadExchange") Exchange deadExchange) {
         return BindingBuilder.bind(smsQueueDead).to(deadExchange).with(SmsDeadRoutingKey).noargs();
     }
 

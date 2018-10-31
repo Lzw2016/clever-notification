@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <!--suppress CheckTagEmptyBody, SqlDialectInspection, SqlNoDataSourceInspection, SqlResolve -->
-<mapper namespace="org.clever.notification.mapper.SysBindEmailMapper">
-    <select id="getAllEnabled" resultType="org.clever.notification.entity.SysBindEmail">
-        select * from sys_bind_email where enabled=1
+<mapper namespace="org.clever.notification.mapper.MessageTemplateMapper">
+    <select id="getAllEnabled" resultType="org.clever.notification.entity.MessageTemplate">
+        select * from message_template where enabled=1
     </select>
 </mapper>

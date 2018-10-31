@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.clever.common.utils.SnowFlake;
 import org.clever.notification.config.RabbitBeanConfig;
 import org.clever.notification.model.EmailMessage;
+import org.clever.notification.rabbit.BaseSendMessage;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.support.CorrelationData;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,27 +16,25 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @Slf4j
-public class SendEmailMessage {
+public class SendEmailMessage extends BaseSendMessage<EmailMessage> {
 
     @Autowired
     private SnowFlake snowFlake;
     @Autowired
     private RabbitTemplate rabbitTemplate;
 
-    // TODO 批量操作
-//    BatchingRabbitTemplate
+    @Override
+    public Long nextId() {
+        return snowFlake.nextId();
+    }
 
-    /**
-     * 发送消息
-     */
-    public EmailMessage send(EmailMessage emailMessage) {
-        emailMessage.setSendId(snowFlake.nextId());
+    @Override
+    public void internalSend(EmailMessage emailMessage) {
         rabbitTemplate.convertAndSend(
                 RabbitBeanConfig.MessageExchange,
                 String.format("%s.%s", RabbitBeanConfig.EmailRoutingKey, emailMessage.getSysName()),
                 emailMessage,
                 new CorrelationData(emailMessage.getSendId().toString())
         );
-        return emailMessage;
     }
 }

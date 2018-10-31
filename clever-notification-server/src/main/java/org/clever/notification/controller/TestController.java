@@ -17,6 +17,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/test")
 public class TestController {
 
+
+    // TODO 批量操作
+//    BatchingRabbitTemplate
+
 //    @Autowired
 //    private RabbitReceiver rabbitReceiver;
 //

@@ -29,14 +29,14 @@ spring:
       max-file-size: 1MB
       max-request-size: 10MB
 
-  http: #------------------------------------------------------------------ http配置
+  http: #----------------------------------------------------------------- http 配置
     converters:
       preferred-json-mapper: jackson
     encoding:
       charset: UTF-8
       force: true
 
-  jackson: #------------------------------------------------------------ jackson配置
+  jackson: #----------------------------------------------------------- jackson 配置
     date-format: yyyy-MM-dd HH:mm:ss
     joda-date-time-format: yyyy-MM-dd HH:mm:ss
     locale: zh_CN
@@ -49,6 +49,16 @@ spring:
     cache:
       period: 31536000s
     static-locations: ['classpath:/static/']
+
+  freemarker: #----------------------------------------------------- freemarker 配置
+    enabled: false
+    charset: UTF-8
+    settings:
+      # template_update_delay: 3600
+      locale: zh_CN
+      datetime_format: 'yyyy-MM-dd HH:mm:ss'
+      date_format: 'yyyy-MM-dd'
+      number_format: '#.##'
 
   datasource: #----------------------------------------------------------- 数据库配置
     type: com.zaxxer.hikari.HikariDataSource
