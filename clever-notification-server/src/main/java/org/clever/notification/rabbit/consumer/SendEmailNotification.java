@@ -23,16 +23,20 @@ public class SendEmailNotification {
 
     @RabbitHandler
     public void send(EmailMessage emailMessage) {
-        log.info("### 处理发送邮件 {}", emailMessage.getSendId());
+        log.info("### 处理发送邮件 {} 通知地址 -> {}", emailMessage.getSendId(), emailMessage.getAsyncCallBack());
         try {
             // TODO 使用Redis或者数据库去重 MessageID
+            // TODO 黑名单限制
+            // TODO 发送频率限制
             if (sendEmailService.senEmail(emailMessage)) {
                 // TODO 异步通知成功
+                log.info("### 处理发送邮件 [成功] {}", emailMessage.getSendId());
             } else {
                 // TODO 异步通知失败
+                log.info("### 处理发送邮件 [失败] {}", emailMessage.getSendId());
             }
         } catch (Throwable e) {
-            log.error("### 处理发送邮件失败 {}", emailMessage.getSendId());
+            log.error("### 处理发送邮件[错误] {}", emailMessage.getSendId());
             // TODO 异步通知失败
             // TODO 记录或通知当前错误
             // 抛出异常 Nack

@@ -9,7 +9,6 @@ create table message_template
 (
     id              bigint          not null        auto_increment                          comment '主键id',
     name            varchar(127)    not null        unique                                  comment '模版名称',
-    title           varchar(127)    not null                                                comment '标题',
     content         MediumText      not null                                                comment '模版内容',
     message_demo    MediumText                                                              comment '模版消息示例',
     enabled         int(1)          not null        default 1                               comment '是否启用，0：禁用；1：启用',
@@ -37,6 +36,7 @@ create table message_send_log
     send_state      int(1)          not null        default 1                               comment '发送状态，1：发送中；2：发送失败；3：发送失败',
     fail_reason     varchar(511)                                                            comment '发送失败原因',
     send_time       datetime(3)     not null                                                comment '发送时间',
+    use_time        int(1)                                                                  comment '发送消息耗时(毫秒)',
     create_at       datetime(3)     not null        default current_timestamp(3)            comment '创建时间',
     update_at       datetime(3)                     on update current_timestamp(3)          comment '更新时间',
     primary key (id)

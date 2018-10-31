@@ -46,4 +46,8 @@ public class MessageTemplateService {
         log.info("### 加载所有消息模版, 数量: {}", messageTemplateList.size());
         // TODO 集群修改刷新？
     }
+
+    public boolean templateExists(String templateName) {
+        return stringTemplateLoader.findTemplateSource(templateName) != null;
+    }
 }

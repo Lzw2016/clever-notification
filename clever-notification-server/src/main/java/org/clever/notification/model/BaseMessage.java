@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.apache.commons.lang3.StringUtils;
+import org.clever.common.exception.BusinessException;
 import org.clever.notification.utils.StringTemplateUtils;
 
 import java.io.Serializable;
@@ -27,6 +28,13 @@ public abstract class BaseMessage implements Serializable {
     @Getter
     @Setter
     private Long sendId;
+
+    /**
+     * 异步发送时的回调接口
+     */
+    @Getter
+    @Setter
+    private String asyncCallBack;
 
     /**
      * 消息所属系统名称
@@ -58,7 +66,14 @@ public abstract class BaseMessage implements Serializable {
     /**
      * 验证消息配置是否正确
      */
-    public abstract void valid();
+    public void valid() {
+        if (StringUtils.isBlank(sysName)) {
+            throw new BusinessException("消息所属系统名称，不能为空");
+        }
+        if (StringUtils.isBlank(templateName) && StringUtils.isBlank(content)) {
+            throw new BusinessException("消息模版和者消息内容不能同时为空");
+        }
+    }
 
     /**
      * 根据“消息模版内容”、“模板需要参数”生成消息内容<br />

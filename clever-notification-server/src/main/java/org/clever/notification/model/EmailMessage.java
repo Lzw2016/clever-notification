@@ -2,9 +2,12 @@ package org.clever.notification.model;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.apache.commons.lang3.StringUtils;
+import org.clever.common.exception.BusinessException;
 
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 邮件消息
@@ -59,6 +62,23 @@ public class EmailMessage extends BaseMessage {
      */
     @Override
     public void valid() {
-        // TODO 验证
+        super.valid();
+        // 删除重复 删除空
+        if (to != null && to.size() > 0) {
+            to = to.stream().filter(StringUtils::isNotBlank).distinct().collect(Collectors.toList());
+        }
+        if (cc != null && cc.size() > 0) {
+            cc = cc.stream().filter(StringUtils::isNotBlank).distinct().collect(Collectors.toList());
+        }
+        if (bcc != null && bcc.size() > 0) {
+            bcc = bcc.stream().filter(StringUtils::isNotBlank).distinct().collect(Collectors.toList());
+        }
+        // 校验
+        if (to == null || to.size() <= 0) {
+            throw new BusinessException("设置收件人，不能为空");
+        }
+        if (StringUtils.isBlank(subject)) {
+            throw new BusinessException("设置邮件主题，不能为空");
+        }
     }
 }

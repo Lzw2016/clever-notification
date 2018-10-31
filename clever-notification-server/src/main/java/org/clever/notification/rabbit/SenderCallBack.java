@@ -45,9 +45,9 @@ public class SenderCallBack implements RabbitTemplate.ConfirmCallback, RabbitTem
     @Override
     public void confirm(CorrelationData correlationData, boolean ack, String cause) {
         if (ack) {
-            log.info("### 消息发送成功 -> {}", correlationData.getId());
+            log.info("### 消息到达交换器 -> {}", correlationData.getId());
         } else {
-            log.error("### 消息发送失败 -> [correlationData={}] [cause={}]", correlationData, cause);
+            log.error("### 消息不能到达交换器 -> [correlationData={}] [cause={}]", correlationData, cause);
             // TODO 异步通知 失败
         }
     }
@@ -57,7 +57,7 @@ public class SenderCallBack implements RabbitTemplate.ConfirmCallback, RabbitTem
      */
     @Override
     public void returnedMessage(Message message, int replyCode, String replyText, String exchange, String routingKey) {
-        log.error("### 消息不能发送到队列 -> {}", message);
+        log.error("### 消息不能到达队列 -> {}", message);
         // TODO 异步通知失败
     }
 

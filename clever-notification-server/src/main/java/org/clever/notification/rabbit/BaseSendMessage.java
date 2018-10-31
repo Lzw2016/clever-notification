@@ -9,28 +9,51 @@ import org.clever.notification.model.BaseMessage;
 public abstract class BaseSendMessage<T extends BaseMessage> implements ISendMessage<T> {
 
     /**
-     * 只需要发送消息即可<br />
+     * 只需要发送消息即可(异步)<br />
      * 1. 消息ID已经生成<br />
      * 2. 消息内容已经生成<br />
+     * 3. 已经验证消息<br />
      */
-    public abstract void internalSend(T baseMessage);
+    protected abstract void internalAsyncSend(T baseMessage);
+
+    /**
+     * 只需要发送消息即可(同步)<br />
+     * 1. 消息ID已经生成<br />
+     * 2. 消息内容已经生成<br />
+     * 3. 已经验证消息<br />
+     */
+    protected abstract void internalSend(T baseMessage);
 
     /**
      * 生成下一个消息ID
      */
-    public abstract Long nextId();
+    protected abstract Long nextId();
 
     /**
-     * @param baseMessage 发送的消息
+     * 发送消息之前处理
      */
-    @Override
-    public T send(T baseMessage) {
+    private void sendBefore(T baseMessage) {
         // 生成消息ID
         baseMessage.setSendId(nextId());
         // 生成消息内容
         baseMessage.generateContent();
-        // 发送消息
+        // 验证消息
+        baseMessage.valid();
+    }
+
+    @Override
+    public T send(T baseMessage) {
+        sendBefore(baseMessage);
+        // 同步 发送消息
         internalSend(baseMessage);
+        return baseMessage;
+    }
+
+    @Override
+    public T asyncSend(T baseMessage) {
+        sendBefore(baseMessage);
+        // 异步 发送消息
+        internalAsyncSend(baseMessage);
         return baseMessage;
     }
 }

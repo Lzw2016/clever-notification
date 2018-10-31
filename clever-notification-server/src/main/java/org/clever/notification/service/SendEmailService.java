@@ -1,6 +1,5 @@
 package org.clever.notification.service;
 
-import freemarker.template.Configuration;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.clever.common.exception.BusinessException;
@@ -29,10 +28,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Service
 @Slf4j
 public class SendEmailService {
-    @Autowired
-    private Configuration freemarkerConfiguration;
-
-
     private static final String RootSysName = "root";
 
     /**
@@ -104,6 +99,17 @@ public class SendEmailService {
     }
 
     /**
+     * 发送邮件工具是否存在
+     */
+    public boolean sendMailUtilsExists(String sysName) {
+        List<SpringSendMailUtils> mailUtils = SendMailUtilsMap.get(sysName);
+        if (mailUtils == null || mailUtils.size() <= 0) {
+            mailUtils = SendMailUtilsMap.get(RootSysName);
+        }
+        return (mailUtils != null && mailUtils.size() > 0);
+    }
+
+    /**
      * 发送邮件
      */
     @Transactional
@@ -117,8 +123,8 @@ public class SendEmailService {
                     emailMessage.getContent(),
                     null,
                     null,
-                    emailMessage.getCc().toArray(new String[]{}),
-                    emailMessage.getBcc().toArray(new String[]{}),
+                    emailMessage.getCc() == null ? null : emailMessage.getCc().toArray(new String[]{}),
+                    emailMessage.getBcc() == null ? null : emailMessage.getBcc().toArray(new String[]{}),
                     null,
                     null
             );
