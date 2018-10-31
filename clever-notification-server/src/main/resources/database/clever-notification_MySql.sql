@@ -99,18 +99,10 @@ create index sys_bind_email_account on sys_bind_email (account);
 
 消息类型：邮件、短信、微信公众号消息、微信小程序消息、Web-PC消息、APP消息、
 
-消息模版
-    邮件模版
-    短信模版
-    ...模版
-消息发送日志
-接收者黑名单
-系统邮件发送者帐号
 
-邮件发件箱配置表
-    * @param fromAccount ，不能为空
-     * @param fromName    ，可以为空
-     * @param password    ，不能为空
+系统短信发送帐号密钥配置
+
+
 
 扩展功能：
 1. 限制消息发送频率(分钟，小时，天，周，月)
