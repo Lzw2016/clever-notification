@@ -29,7 +29,7 @@ public class BeanConfiguration {
         PaginationInterceptor paginationInterceptor = new PaginationInterceptor();
 //        paginationInterceptor.setSqlParser()
 //        paginationInterceptor.setDialectClazz()
-//        paginationInterceptor.setOverflow()
+        paginationInterceptor.setOverflow(false);
 //        paginationInterceptor.setProperties();
         return paginationInterceptor;
     }
@@ -61,9 +61,9 @@ public class BeanConfiguration {
     @Profile({"dev", "test"})
     protected PerformanceInterceptor performanceInterceptor() {
         PerformanceInterceptor performanceInterceptor = new PerformanceInterceptor();
-//        performanceInterceptor.setFormat(true);
-//        performanceInterceptor.setMaxTime();
-//        performanceInterceptor.setWriteInLog();
+        performanceInterceptor.setFormat(false);
+        performanceInterceptor.setWriteInLog(false);
+        performanceInterceptor.setMaxTime(1000);
         return performanceInterceptor;
     }
 
@@ -95,7 +95,7 @@ public class BeanConfiguration {
     protected Jackson2JsonMessageConverter jackson2JsonMessageConverter(ObjectMapper objectMapper) {
         return new Jackson2JsonMessageConverter(objectMapper);
     }
-    
+
     @Bean
     protected StringTemplateLoader stringTemplateLoader() {
         return new StringTemplateLoader();

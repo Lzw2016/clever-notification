@@ -24,7 +24,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * 作者： lzw<br/>
  * 创建时间：2018-10-30 21:27 <br/>
  */
-@Transactional(readOnly = true)
+//@Transactional(readOnly = true)
 @Service
 @Slf4j
 public class SendEmailService {
@@ -42,33 +42,45 @@ public class SendEmailService {
 
     @Autowired
     private SysBindEmailMapper sysBindEmailMapper;
+    @Autowired
+    private CryptoService cryptoService;
+
+    private SpringSendMailUtils newSpringSendMailUtils(SysBindEmail sysBindEmail) {
+        log.info("### 初始化 JavaMailSender {} -> {}", sysBindEmail.getSysName(), sysBindEmail.getAccount());
+        // 创建 JavaMailSender
+        JavaMailSenderImpl javaMailSender = new JavaMailSenderImpl();
+        javaMailSender.getJavaMailProperties().setProperty("mail.smtp.auth", "true");
+        javaMailSender.getJavaMailProperties().setProperty("mail.smtp.timeout", "20000");
+        javaMailSender.setDefaultEncoding("UtF-8");
+        if (StringUtils.isBlank(sysBindEmail.getSmtpHost())) {
+            javaMailSender.setHost(EmailServerHostUtils.getEmailSmtpHost(sysBindEmail.getAccount()));
+        } else {
+            javaMailSender.setHost(sysBindEmail.getSmtpHost());
+        }
+        // javaMailSender.setPort(3306);
+        javaMailSender.setUsername(sysBindEmail.getAccount());
+        // 密码解密
+        javaMailSender.setPassword(cryptoService.dbAesDecrypt(sysBindEmail.getPassword()));
+        return new SpringSendMailUtils(javaMailSender);
+    }
+
+    public void addSendMailUtils(SysBindEmail sysBindEmail) {
+        SpringSendMailUtils springSendMailUtils = newSpringSendMailUtils(sysBindEmail);
+        // 各个系统自己的帐号
+        List<SpringSendMailUtils> mailUtils = SendMailUtilsMap.computeIfAbsent(sysBindEmail.getSysName(), k -> new CopyOnWriteArrayList<>());
+        // mailUtils.stream().filter(springSendMailUtils1 -> springSendMailUtils.getJavaMailSender().get).findFirst()
+        mailUtils.add(springSendMailUtils);
+        PollingSendMailUtils.computeIfAbsent(sysBindEmail.getSysName(), k -> new AtomicInteger(0));
+    }
 
     @PostConstruct
     private void init() {
         List<SysBindEmail> sysBindEmailList = sysBindEmailMapper.getAllEnabled();
         for (SysBindEmail sysBindEmail : sysBindEmailList) {
-            log.info("### 初始化 JavaMailSender {} -> {}", sysBindEmail.getSysName(), sysBindEmail.getAccount());
-            // 创建 JavaMailSender
-            JavaMailSenderImpl javaMailSender = new JavaMailSenderImpl();
-            javaMailSender.getJavaMailProperties().setProperty("mail.smtp.auth", "true");
-            javaMailSender.getJavaMailProperties().setProperty("mail.smtp.timeout", "20000");
-            javaMailSender.setDefaultEncoding("UtF-8");
-            if (StringUtils.isBlank(sysBindEmail.getSmtpHost())) {
-                javaMailSender.setHost(EmailServerHostUtils.getEmailSmtpHost(sysBindEmail.getAccount()));
-            } else {
-                javaMailSender.setHost(sysBindEmail.getSmtpHost());
-            }
-            // javaMailSender.setPort(3306);
-            javaMailSender.setUsername(sysBindEmail.getAccount());
-            javaMailSender.setPassword(sysBindEmail.getPassword());
-            SpringSendMailUtils springSendMailUtils = new SpringSendMailUtils(javaMailSender);
-            // 各个系统自己的帐号
-            List<SpringSendMailUtils> mailUtils = SendMailUtilsMap.computeIfAbsent(sysBindEmail.getSysName(), k -> new CopyOnWriteArrayList<>());
-            mailUtils.add(springSendMailUtils);
-            PollingSendMailUtils.computeIfAbsent(sysBindEmail.getSysName(), k -> new AtomicInteger(0));
+            addSendMailUtils(sysBindEmail);
         }
         if (PollingSendMailUtils.size() <= 0) {
-            log.warn("未配置发送邮件帐号密码");
+            log.warn("### 未配置发送邮件帐号密码");
         }
     }
 
@@ -90,7 +102,9 @@ public class SendEmailService {
             if (index >= mailUtils.size()) {
                 atomicInteger.set(0);
             }
-            springSendMailUtils = mailUtils.get(index % mailUtils.size());
+            index = index % mailUtils.size();
+            log.debug("### 取值下标 index={}", index);
+            springSendMailUtils = mailUtils.get(index);
         }
         if (springSendMailUtils == null) {
             throw new BusinessException("系统[" + sysName + "]没有配置发送邮件帐号密码");
@@ -101,12 +115,12 @@ public class SendEmailService {
     /**
      * 发送邮件工具是否存在
      */
-    public boolean sendMailUtilsExists(String sysName) {
+    public boolean sendMailUtilsNotExists(String sysName) {
         List<SpringSendMailUtils> mailUtils = SendMailUtilsMap.get(sysName);
         if (mailUtils == null || mailUtils.size() <= 0) {
             mailUtils = SendMailUtilsMap.get(RootSysName);
         }
-        return (mailUtils != null && mailUtils.size() > 0);
+        return (mailUtils == null || mailUtils.size() <= 0);
     }
 
     /**

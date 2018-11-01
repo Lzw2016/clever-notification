@@ -1,6 +1,7 @@
 package org.clever.notification.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import org.apache.ibatis.annotations.Param;
 import org.clever.notification.entity.SysBindEmail;
 
 import java.util.List;
@@ -12,4 +13,6 @@ import java.util.List;
 public interface SysBindEmailMapper extends BaseMapper<SysBindEmail> {
 
     List<SysBindEmail> getAllEnabled();
+
+    int existsAccount(@Param("account") String account);
 }

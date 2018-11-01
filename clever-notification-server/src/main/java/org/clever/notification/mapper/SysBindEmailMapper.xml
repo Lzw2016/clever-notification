@@ -5,4 +5,8 @@
     <select id="getAllEnabled" resultType="org.clever.notification.entity.SysBindEmail">
         select * from sys_bind_email where enabled=1
     </select>
+
+    <select id="existsAccount" resultType="int">
+        select count(1) from sys_bind_email where account=#{account}
+    </select>
 </mapper>

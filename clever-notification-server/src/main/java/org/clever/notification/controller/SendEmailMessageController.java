@@ -44,7 +44,7 @@ public class SendEmailMessageController {
             throw new BusinessException("消息模板不存在");
         }
         // 验证发送邮件帐号是否已经配置
-        if (!sendEmailService.sendMailUtilsExists(emailMessage.getSysName())) {
+        if (sendEmailService.sendMailUtilsNotExists(emailMessage.getSysName())) {
             throw new BusinessException("验证发送邮件帐号未配置");
         }
         if (req.isAsync()) {
@@ -63,7 +63,7 @@ public class SendEmailMessageController {
         EmailMessage emailMessage = BeanMapper.mapper(req, EmailMessage.class);
         emailMessage.valid();
         // 验证发送邮件帐号是否已经配置
-        if (!sendEmailService.sendMailUtilsExists(emailMessage.getSysName())) {
+        if (sendEmailService.sendMailUtilsNotExists(emailMessage.getSysName())) {
             throw new BusinessException("验证发送邮件帐号未配置");
         }
         if (req.isAsync()) {
