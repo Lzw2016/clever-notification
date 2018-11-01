@@ -57,7 +57,6 @@ public class SendSmsByTemplateReq extends BaseRequest {
     public SendSmsByTemplateReq(String sysName, String templateName, String to) {
         this.sysName = sysName;
         this.templateName = templateName;
-        this.params = params;
         this.to = new ArrayList<String>() {{
             add(to);
         }};

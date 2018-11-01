@@ -9,4 +9,33 @@
     <select id="existsAccount" resultType="int">
         select count(1) from sys_bind_email where account=#{account}
     </select>
+
+    <select id="findByPage" resultType="org.clever.notification.entity.SysBindEmail">
+        select
+          id,
+          sys_name,
+          account,
+          from_name,
+          smtp_host,
+          pop3_host,
+          enabled,
+          create_at,
+          update_at
+        from sys_bind_email
+        <where>
+            <if test="query.sysName!=null and query.sysName!=''">
+                and sys_name=#{query.sysName}
+            </if>
+            <if test="query.account!=null and query.account!=''">
+                and account like concat('%', #{query.account},'%')
+            </if>
+            <if test="query.fromName!=null and query.fromName!=''">
+                and from_name like concat('%', #{query.fromName},'%')
+            </if>
+            <if test="query.enabled!=null">
+                and enabled=#{query.enabled}
+            </if>
+        </where>
+        order by sys_name, account
+    </select>
 </mapper>

@@ -4,6 +4,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.clever.common.model.request.BaseRequest;
+import org.clever.notification.dto.PatternConstant;
 import org.hibernate.validator.constraints.Range;
 
 import javax.validation.constraints.Email;
@@ -21,7 +22,7 @@ public class SysBindEmailAddReq extends BaseRequest {
 
     @ApiModelProperty("系统名称(全局使用“root”名称)")
     @NotBlank
-    @Pattern(regexp = "[a-zA-Z0-9\\u4e00-\\u9fa5()\\[\\]{}_-]{3,127}")
+    @Pattern(regexp = PatternConstant.SysName_Pattern)
     private String sysName;
 
     @ApiModelProperty("发送人的邮箱帐号")

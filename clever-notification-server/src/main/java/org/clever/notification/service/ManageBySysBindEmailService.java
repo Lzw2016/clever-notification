@@ -1,7 +1,10 @@
 package org.clever.notification.service;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.extern.slf4j.Slf4j;
 import org.clever.common.exception.BusinessException;
+import org.clever.notification.dto.request.SysBindEmailQueryReq;
 import org.clever.notification.entity.SysBindEmail;
 import org.clever.notification.mapper.SysBindEmailMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +26,12 @@ public class ManageBySysBindEmailService {
     private CryptoService cryptoService;
     @Autowired
     private SendEmailService sendEmailService;
+
+    public IPage<SysBindEmail> findByPage(SysBindEmailQueryReq req) {
+        Page<SysBindEmail> page = new Page<>(req.getPageNo(), req.getPageSize());
+        page.setRecords(sysBindEmailMapper.findByPage(req, page));
+        return page;
+    }
 
     @Transactional
     public SysBindEmail addSysBindEmail(SysBindEmail sysBindEmail) {
