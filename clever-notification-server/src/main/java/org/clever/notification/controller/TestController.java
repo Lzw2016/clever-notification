@@ -52,5 +52,14 @@ public class TestController {
         return sendEmailMessage.send(emailMessage);
     }
 
-    // TODO 直接发送不走MQ
+    @GetMapping("/metrics")
+    public String test02() throws InterruptedException {
+        long millis = (long) (Math.random() * 500);
+        Thread.sleep(millis);
+        StringBuilder sb = new StringBuilder("metrics");
+        for (int i = 0; i < millis; i++) {
+            sb.append("\nmetrics ").append(i);
+        }
+        return sb.toString();
+    }
 }
