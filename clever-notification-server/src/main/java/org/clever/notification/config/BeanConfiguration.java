@@ -6,9 +6,11 @@ import com.baomidou.mybatisplus.extension.plugins.PerformanceInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.SqlExplainInterceptor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import freemarker.cache.StringTemplateLoader;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.clever.common.utils.SnowFlake;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.boot.actuate.autoconfigure.metrics.MeterRegistryCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -20,6 +22,11 @@ import org.springframework.context.annotation.Profile;
 @Configuration
 @Slf4j
 public class BeanConfiguration {
+
+    @Bean
+    protected MeterRegistryCustomizer<MeterRegistry> metricsCommonTags() {
+        return registry -> registry.config().commonTags("application", "clever-notification-server");
+    }
 
     /**
      * 分页插件

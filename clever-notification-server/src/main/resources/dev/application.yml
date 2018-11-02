@@ -173,7 +173,10 @@ management:
       prometheus:
         enabled: true
         descriptions: true
-        step: 30s
+        step: 5s
+    distribution:
+      sla:
+        http.server.requests: 1s
 
 ###################################################################################
 ### mybatis-plus配置
