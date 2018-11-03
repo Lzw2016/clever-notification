@@ -1,5 +1,5 @@
--- create database `clever-notification`;
--- use `clever-notification`;
+create database if not exists `clever-notification` default character set = utf8mb4;
+use `clever-notification`;
 
 
 /* ====================================================================================================================

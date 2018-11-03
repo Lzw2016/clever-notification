@@ -177,12 +177,12 @@ management:
         descriptions: true
         step: 5s
     distribution:
-      percentiles:
-        http.server.requests: 0.5, 0.75, 0.9, 0.95
       percentiles-histogram:
         http.server.requests: true
+      percentiles:
+        http.server.requests: 0.5, 0.75, 0.9, 0.95, 0.99
       sla:
-        http.server.requests: 10ms, 20ms, 30ms, 50ms, 100ms, 200ms, 500ms, 1s, 3s, 5s
+        http.server.requests: 10ms, 50ms, 100ms, 200ms, 500ms, 1s, 2s, 3s, 4s, 5s, 10s, 15s, 20s, 30s, 50s
 
 ###################################################################################
 ### mybatis-plus配置
