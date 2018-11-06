@@ -4,6 +4,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.apache.commons.lang3.StringUtils;
 import org.clever.common.exception.BusinessException;
+import org.clever.notification.entity.EnumConstant;
+import org.clever.notification.entity.MessageSendLog;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -44,5 +46,12 @@ public class SmsMessage extends BaseMessage {
         if (to == null || to.size() <= 0) {
             throw new BusinessException("接收手机号，不能为空");
         }
+    }
+
+    @Override
+    public MessageSendLog createMessageSendLog() {
+        MessageSendLog messageSendLog = super.createMessageSendLog();
+        messageSendLog.setMessageType(EnumConstant.MessageType_2);
+        return messageSendLog;
     }
 }

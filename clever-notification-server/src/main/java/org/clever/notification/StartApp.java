@@ -7,6 +7,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.context.ApplicationContext;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import java.util.TimeZone;
@@ -16,6 +17,7 @@ import java.util.TimeZone;
  * Created by lzw on 2017/2/25.
  */
 @Slf4j
+@EnableScheduling
 @EnableRabbit
 @EnableDiscoveryClient
 @EnableTransactionManagement

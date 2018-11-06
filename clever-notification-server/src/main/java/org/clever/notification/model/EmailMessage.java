@@ -4,6 +4,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.apache.commons.lang3.StringUtils;
 import org.clever.common.exception.BusinessException;
+import org.clever.notification.entity.EnumConstant;
+import org.clever.notification.entity.MessageSendLog;
 
 import java.util.Date;
 import java.util.List;
@@ -80,5 +82,12 @@ public class EmailMessage extends BaseMessage {
         if (StringUtils.isBlank(subject)) {
             throw new BusinessException("设置邮件主题，不能为空");
         }
+    }
+
+    @Override
+    public MessageSendLog createMessageSendLog() {
+        MessageSendLog messageSendLog = super.createMessageSendLog();
+        messageSendLog.setMessageType(EnumConstant.MessageType_1);
+        return messageSendLog;
     }
 }

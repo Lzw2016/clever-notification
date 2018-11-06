@@ -40,17 +40,12 @@ public class MessageSendLog implements Serializable {
     private String templateName;
 
     /**
-     * 消息参数Json字符串
+     * 消息对象Json字符串
      */
-    private String params;
+    private String messageObject;
 
     /**
-     * 发送消息内容
-     */
-    private String content;
-
-    /**
-     * 发送状态，1：发送中；2：发送失败；3：发送失败
+     * 发送状态，1：发送中；2：发送失败；3：发送成功
      */
     private Integer sendState;
 
@@ -63,6 +58,11 @@ public class MessageSendLog implements Serializable {
      * 发送时间
      */
     private Date sendTime;
+
+    /**
+     * 发送消息耗时(毫秒)
+     */
+    private Long useTime;
 
     /**
      * 创建时间

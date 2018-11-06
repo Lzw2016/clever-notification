@@ -7,6 +7,9 @@ import lombok.Setter;
 import lombok.ToString;
 import org.apache.commons.lang3.StringUtils;
 import org.clever.common.exception.BusinessException;
+import org.clever.common.utils.mapper.JacksonMapper;
+import org.clever.notification.entity.EnumConstant;
+import org.clever.notification.entity.MessageSendLog;
 import org.clever.notification.utils.StringTemplateUtils;
 
 import java.io.Serializable;
@@ -98,5 +101,18 @@ public abstract class BaseMessage implements Serializable {
         }
         paramsFillContent = true;
         return content;
+    }
+
+    /**
+     * 创建消息日志
+     */
+    protected MessageSendLog createMessageSendLog() {
+        MessageSendLog messageSendLog = new MessageSendLog();
+        messageSendLog.setSendId(getSendId());
+        messageSendLog.setSysName(getSysName());
+        messageSendLog.setTemplateName(getTemplateName());
+        messageSendLog.setMessageObject(JacksonMapper.nonEmptyMapper().toJson(this));
+        messageSendLog.setSendState(EnumConstant.SendState_1);
+        return messageSendLog;
     }
 }

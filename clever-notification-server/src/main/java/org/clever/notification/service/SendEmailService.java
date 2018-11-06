@@ -5,7 +5,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.clever.common.exception.BusinessException;
 import org.clever.common.utils.javamail.EmailServerHostUtils;
 import org.clever.common.utils.javamail.SpringSendMailUtils;
+import org.clever.notification.entity.EnumConstant;
+import org.clever.notification.entity.MessageSendLog;
 import org.clever.notification.entity.SysBindEmail;
+import org.clever.notification.mapper.MessageSendLogMapper;
 import org.clever.notification.mapper.SysBindEmailMapper;
 import org.clever.notification.model.EmailMessage;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -24,7 +28,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  * 作者： lzw<br/>
  * 创建时间：2018-10-30 21:27 <br/>
  */
-//@Transactional(readOnly = true)
 @Service
 @Slf4j
 public class SendEmailService {
@@ -42,6 +45,8 @@ public class SendEmailService {
 
     @Autowired
     private SysBindEmailMapper sysBindEmailMapper;
+    @Autowired
+    private MessageSendLogMapper messageSendLogMapper;
     @Autowired
     private CryptoService cryptoService;
 
@@ -128,7 +133,10 @@ public class SendEmailService {
      */
     @Transactional
     public boolean sendEmail(EmailMessage emailMessage) {
-        // TODO 记录发送日志
+        // 记录发送日志
+        MessageSendLog messageSendLog = emailMessage.createMessageSendLog();
+        messageSendLog.setSendTime(new Date());
+        messageSendLogMapper.insert(messageSendLog);
         try {
             SpringSendMailUtils springSendMailUtils = getSendMailUtils(emailMessage.getSysName());
             springSendMailUtils.sendMimeMessage(
@@ -144,10 +152,23 @@ public class SendEmailService {
             );
         } catch (Throwable e) {
             log.error("发送邮件失败", e);
-            // TODO 更新发送日志 - 失败
+            // 更新发送日志 - 失败
+            MessageSendLog update = new MessageSendLog();
+            update.setId(messageSendLog.getId());
+            update.setSendState(EnumConstant.SendState_2);
+            update.setFailReason(StringUtils.mid(e.getMessage(), 0, 511));
+            update.setUseTime(new Date().getTime() - messageSendLog.getSendTime().getTime());
+            update.setUpdateAt(new Date());
+            messageSendLogMapper.updateById(update);
             return false;
         }
-        // TODO 更新发送日志 - 成功
+        // 更新发送日志 - 成功
+        MessageSendLog update = new MessageSendLog();
+        update.setId(messageSendLog.getId());
+        update.setSendState(EnumConstant.SendState_3);
+        update.setUseTime(new Date().getTime() - messageSendLog.getSendTime().getTime());
+        update.setUpdateAt(new Date());
+        messageSendLogMapper.updateById(update);
         return true;
     }
 }
