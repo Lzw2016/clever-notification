@@ -2,7 +2,7 @@ package org.clever.notification.controller;
 
 import io.swagger.annotations.Api;
 import org.clever.notification.model.EmailMessage;
-import org.clever.notification.rabbit.producer.SendEmailMessage;
+import org.clever.notification.rabbit.producer.impl.SendEmailMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

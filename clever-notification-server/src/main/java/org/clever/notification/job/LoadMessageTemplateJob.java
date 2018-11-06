@@ -20,6 +20,7 @@ public class LoadMessageTemplateJob {
     /**
      * 定时加载消息模版(直接修改数据库或集群时有用)
      */
+//    @Scheduled(cron = "0/1 * * * * ?") // 测试
     @Scheduled(cron = "0 0/1 * * * ?")
     public void loadMessageTemplate() {
         messageTemplateService.load();

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<!--suppress SqlDialectInspection -->
+<mapper namespace="org.clever.notification.mapper.ReceiverBlackListMapper">
+    <update id="updateEnabledByExpiredTime">
+        <![CDATA[ update receiver_black_list set enabled=0 where enabled=1 and expired_time<=now() ]]>
+    </update>
+
+    <select id="findAllEnabled" resultType="org.clever.notification.entity.ReceiverBlackList">
+        select * from receiver_black_list where enabled=1 and (expired_time is null or expired_time>now())
+    </select>
+</mapper>

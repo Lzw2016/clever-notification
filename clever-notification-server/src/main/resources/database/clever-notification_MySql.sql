@@ -22,6 +22,27 @@ create index message_template_title on message_template (title);
 
 
 /* ====================================================================================================================
+    sys_bind_email -- 系统邮件发送者帐号
+==================================================================================================================== */
+create table sys_bind_email
+(
+    id              bigint          not null        auto_increment                          comment '主键id',
+    sys_name        varchar(127)    not null                                                comment '系统名称(全局使用“root”名称)',
+    account         varchar(255)    not null        unique                                  comment '发送人的邮箱帐号',
+    password        varchar(255)    not null                                                comment '发送人的邮箱密码',
+    from_name       varchar(127)                                                            comment '发送人的名称',
+    smtp_host       varchar(127)                                                            comment 'SMTP服务器地址',
+    pop3_host       varchar(127)                                                            comment 'POP3服务器地址',
+    enabled         int(1)          not null        default 1                               comment '是否启用，0：禁用；1：启用',
+    create_at       datetime(3)     not null        default current_timestamp(3)            comment '创建时间',
+    update_at       datetime(3)                     on update current_timestamp(3)          comment '更新时间',
+    primary key (id)
+) comment = '系统邮件发送者帐号';
+create index sys_bind_email_sys_name on sys_bind_email (sys_name);
+create index sys_bind_email_account on sys_bind_email (account);
+
+
+/* ====================================================================================================================
     message_send_log -- 消息发送日志
 ==================================================================================================================== */
 create table message_send_log
@@ -62,34 +83,26 @@ create index receiver_black_list_account on receiver_black_list (account);
 
 
 /* ====================================================================================================================
-    sys_bind_email -- 系统邮件发送者帐号
+    frequency_limit -- 限制消息发送频率
 ==================================================================================================================== */
-create table sys_bind_email
+create table frequency_limit
 (
     id              bigint          not null        auto_increment                          comment '主键id',
-    sys_name        varchar(127)    not null                                                comment '系统名称(全局使用“root”名称)',
-    account         varchar(255)    not null        unique                                  comment '发送人的邮箱帐号',
-    password        varchar(255)    not null                                                comment '发送人的邮箱密码',
-    from_name       varchar(127)                                                            comment '发送人的名称',
-    smtp_host       varchar(127)                                                            comment 'SMTP服务器地址',
-    pop3_host       varchar(127)                                                            comment 'POP3服务器地址',
+    sys_name        varchar(127)                                                            comment '系统名称(为空就是全局黑名单)',
+    message_type    int(1)          not null                                                comment '消息类型，1：邮件；2：短信；...',
+    account         varchar(127)    not null                                                comment '黑名单帐号',
     enabled         int(1)          not null        default 1                               comment '是否启用，0：禁用；1：启用',
+    expired_time    datetime(3)                                                             comment '黑名单帐号过期时间(到期自动禁用)',
+    minutes_count   int             not null        default 0                               comment '一分钟内的发送次数(小于等于0表示不限制)', 
+    hours_count     int             not null        default 0                               comment '一小时内的发送次数(小于等于0表示不限制)',
+    days_count      int             not null        default 0                               comment '一天内的发送次数(小于等于0表示不限制)',
+    weeks_count     int             not null        default 0                               comment '一周内的发送次数(小于等于0表示不限制)',
+    months_count    int             not null        default 0                               comment '一月内的发送次数(小于等于0表示不限制)',
     create_at       datetime(3)     not null        default current_timestamp(3)            comment '创建时间',
     update_at       datetime(3)                     on update current_timestamp(3)          comment '更新时间',
     primary key (id)
-) comment = '系统邮件发送者帐号';
-create index sys_bind_email_sys_name on sys_bind_email (sys_name);
-create index sys_bind_email_account on sys_bind_email (account);
-
-
-
-
-
-
-
-
-
-
+) comment = '限制消息发送频率(分钟，小时，天，周，月)';
+create index frequency_limit_account on frequency_limit (account);
 
 
 /*------------------------------------------------------------------------------------------------------------------------

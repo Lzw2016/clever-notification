@@ -1,9 +1,11 @@
-package org.clever.notification.rabbit.producer;
+package org.clever.notification.rabbit.producer.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.clever.common.utils.SnowFlake;
 import org.clever.notification.model.SmsMessage;
-import org.clever.notification.rabbit.BaseSendMessage;
+import org.clever.notification.rabbit.producer.BaseSendMessage;
+import org.clever.notification.rabbit.producer.IExcludeBlackList;
+import org.clever.notification.rabbit.producer.IFrequencyLimit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -21,6 +23,16 @@ public class SendSmsMessage extends BaseSendMessage<SmsMessage> {
     @Override
     protected Long nextId() {
         return snowFlake.nextId();
+    }
+
+    @Override
+    protected IExcludeBlackList getIExcludeBlackList() {
+        return null;
+    }
+
+    @Override
+    protected IFrequencyLimit getIFrequencyLimit() {
+        return null;
     }
 
     @Override

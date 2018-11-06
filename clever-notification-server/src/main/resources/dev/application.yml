@@ -136,6 +136,20 @@ spring:
         idle-event-interval: 10s
         consumers-per-queue: 16
 
+  redis: #---------------------------------------------------------------- Redis配置
+    ssl: false
+    host: '127.0.0.1'
+    port: 6379
+    timeout: 1s
+    database: 0
+    lettuce:
+      pool:
+        max-active: 16
+        max-idle: 8
+        min-idle: 1
+        max-wait: 1s
+      shutdown-timeout: 100ms
+
   cloud: #------------------------------------------------------------ Spring Cloud
     consul:
       enabled: false

@@ -8,7 +8,7 @@ import org.clever.notification.dto.request.SendEmailByContentReq;
 import org.clever.notification.dto.request.SendEmailByTemplateReq;
 import org.clever.notification.dto.response.SendEmailRes;
 import org.clever.notification.model.EmailMessage;
-import org.clever.notification.rabbit.producer.SendEmailMessage;
+import org.clever.notification.rabbit.producer.impl.SendEmailMessage;
 import org.clever.notification.service.MessageTemplateService;
 import org.clever.notification.service.SendEmailService;
 import org.springframework.beans.factory.annotation.Autowired;

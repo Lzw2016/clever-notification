@@ -1,10 +1,13 @@
-package org.clever.notification.rabbit.producer;
+package org.clever.notification.rabbit.producer.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.clever.common.utils.SnowFlake;
 import org.clever.notification.config.RabbitBeanConfig;
 import org.clever.notification.model.EmailMessage;
-import org.clever.notification.rabbit.BaseSendMessage;
+import org.clever.notification.rabbit.producer.BaseSendMessage;
+import org.clever.notification.rabbit.producer.IExcludeBlackList;
+import org.clever.notification.rabbit.producer.IFrequencyLimit;
+import org.clever.notification.service.ReceiverBlackListService;
 import org.clever.notification.service.SendEmailService;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.support.CorrelationData;
@@ -25,10 +28,22 @@ public class SendEmailMessage extends BaseSendMessage<EmailMessage> {
     private RabbitTemplate rabbitTemplate;
     @Autowired
     private SendEmailService sendEmailService;
+    @Autowired
+    private ReceiverBlackListService receiverBlackListService;
 
     @Override
     protected Long nextId() {
         return snowFlake.nextId();
+    }
+
+    @Override
+    protected IExcludeBlackList getIExcludeBlackList() {
+        return receiverBlackListService;
+    }
+
+    @Override
+    protected IFrequencyLimit getIFrequencyLimit() {
+        return null;
     }
 
     @Override
