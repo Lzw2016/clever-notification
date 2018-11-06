@@ -1,6 +1,7 @@
 package org.clever.notification.rabbit;
 
 import org.clever.notification.model.BaseMessage;
+import org.clever.notification.service.ReceiverBlackListService;
 
 /**
  * 作者： lzw<br/>
@@ -29,6 +30,8 @@ public abstract class BaseSendMessage<T extends BaseMessage> implements ISendMes
      */
     protected abstract Long nextId();
 
+    protected abstract ReceiverBlackListService getReceiverBlackListService();
+
     /**
      * 发送消息之前处理
      */
@@ -40,6 +43,7 @@ public abstract class BaseSendMessage<T extends BaseMessage> implements ISendMes
         // 验证消息
         baseMessage.valid();
         // TODO 黑名单限制
+//        baseMessage = getReceiverBlackListService()
         // TODO 发送频率限制
     }
 

@@ -8,5 +8,4 @@ import org.clever.notification.entity.ReceiverBlackList;
  * 创建时间：2018-10-30 19:35 <br/>
  */
 public interface ReceiverBlackListMapper extends BaseMapper<ReceiverBlackList> {
-
 }

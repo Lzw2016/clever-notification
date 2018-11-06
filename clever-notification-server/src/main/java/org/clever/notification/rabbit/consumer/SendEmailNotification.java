@@ -3,6 +3,7 @@ package org.clever.notification.rabbit.consumer;
 import lombok.extern.slf4j.Slf4j;
 import org.clever.notification.config.RabbitBeanConfig;
 import org.clever.notification.model.EmailMessage;
+import org.clever.notification.service.ReceiverBlackListService;
 import org.clever.notification.service.SendEmailService;
 import org.springframework.amqp.rabbit.annotation.RabbitHandler;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -20,13 +21,16 @@ public class SendEmailNotification {
 
     @Autowired
     private SendEmailService sendEmailService;
+    @Autowired
+    private ReceiverBlackListService receiverBlackListService;
 
     @RabbitHandler
     public void send(EmailMessage emailMessage) {
         log.info("### 处理发送邮件 {} 通知地址 -> {}", emailMessage.getSendId(), emailMessage.getAsyncCallBack());
         try {
             // TODO 使用Redis或者数据库去重 MessageID
-            // TODO 黑名单限制
+            // 黑名单限制
+            emailMessage = receiverBlackListService.removeBlackList(emailMessage);
             // TODO 发送频率限制
             if (sendEmailService.sendEmail(emailMessage)) {
                 // TODO 异步通知成功
