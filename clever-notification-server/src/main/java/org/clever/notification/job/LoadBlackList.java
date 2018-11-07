@@ -20,8 +20,8 @@ public class LoadBlackList {
     /**
      * 定时加载黑名单(直接修改数据库或集群时有用)
      */
-    @Scheduled(cron = "0/1 * * * * ?") // 测试
-//    @Scheduled(cron = "0 0/30 * * * ?")
+//    @Scheduled(cron = "0/1 * * * * ?") // 测试
+    @Scheduled(cron = "0 0/30 * * * ?")
     public void loadBlackList() {
         receiverBlackListService.load();
     }

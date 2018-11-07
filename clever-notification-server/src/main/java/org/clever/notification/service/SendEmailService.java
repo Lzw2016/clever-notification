@@ -11,6 +11,7 @@ import org.clever.notification.entity.SysBindEmail;
 import org.clever.notification.mapper.MessageSendLogMapper;
 import org.clever.notification.mapper.SysBindEmailMapper;
 import org.clever.notification.model.EmailMessage;
+import org.clever.notification.rabbit.producer.IDistinctSendId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.stereotype.Service;
@@ -31,8 +32,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Service
 @Slf4j
 public class SendEmailService {
-    private static final String RootSysName = "root";
-
     /**
      * 发送邮件工具集合(线程安全) sysName -> SpringSendMailUtils
      */
@@ -49,6 +48,8 @@ public class SendEmailService {
     private MessageSendLogMapper messageSendLogMapper;
     @Autowired
     private CryptoService cryptoService;
+    @Autowired
+    private IDistinctSendId distinctSendId;
 
     private SpringSendMailUtils newSpringSendMailUtils(SysBindEmail sysBindEmail) {
         log.info("### 初始化 JavaMailSender {} -> {}", sysBindEmail.getSysName(), sysBindEmail.getAccount());
@@ -97,7 +98,7 @@ public class SendEmailService {
     private SpringSendMailUtils getSendMailUtils(String sysName) {
         List<SpringSendMailUtils> mailUtils = SendMailUtilsMap.get(sysName);
         if (mailUtils == null || mailUtils.size() <= 0) {
-            mailUtils = SendMailUtilsMap.get(RootSysName);
+            mailUtils = SendMailUtilsMap.get(EnumConstant.RootSysName);
         }
         SpringSendMailUtils springSendMailUtils = null;
         if (mailUtils != null && mailUtils.size() > 0) {
@@ -123,7 +124,7 @@ public class SendEmailService {
     public boolean sendMailUtilsNotExists(String sysName) {
         List<SpringSendMailUtils> mailUtils = SendMailUtilsMap.get(sysName);
         if (mailUtils == null || mailUtils.size() <= 0) {
-            mailUtils = SendMailUtilsMap.get(RootSysName);
+            mailUtils = SendMailUtilsMap.get(EnumConstant.RootSysName);
         }
         return (mailUtils == null || mailUtils.size() <= 0);
     }
@@ -150,6 +151,7 @@ public class SendEmailService {
                     null,
                     null
             );
+            distinctSendId.addSendId(emailMessage.getSendId());
         } catch (Throwable e) {
             log.error("发送邮件失败", e);
             // 更新发送日志 - 失败

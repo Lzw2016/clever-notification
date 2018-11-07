@@ -5,9 +5,9 @@ import org.clever.common.utils.SnowFlake;
 import org.clever.notification.config.RabbitBeanConfig;
 import org.clever.notification.model.EmailMessage;
 import org.clever.notification.rabbit.producer.BaseSendMessage;
+import org.clever.notification.rabbit.producer.IDistinctSendId;
 import org.clever.notification.rabbit.producer.IExcludeBlackList;
 import org.clever.notification.rabbit.producer.IFrequencyLimit;
-import org.clever.notification.service.ReceiverBlackListService;
 import org.clever.notification.service.SendEmailService;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.support.CorrelationData;
@@ -29,7 +29,11 @@ public class SendEmailMessage extends BaseSendMessage<EmailMessage> {
     @Autowired
     private SendEmailService sendEmailService;
     @Autowired
-    private ReceiverBlackListService receiverBlackListService;
+    private IExcludeBlackList excludeBlackList;
+    @Autowired
+    private IFrequencyLimit frequencyLimit;
+    @Autowired
+    private IDistinctSendId distinctSendId;
 
     @Override
     protected Long nextId() {
@@ -38,12 +42,17 @@ public class SendEmailMessage extends BaseSendMessage<EmailMessage> {
 
     @Override
     protected IExcludeBlackList getIExcludeBlackList() {
-        return receiverBlackListService;
+        return excludeBlackList;
     }
 
     @Override
     protected IFrequencyLimit getIFrequencyLimit() {
-        return null;
+        return frequencyLimit;
+    }
+
+    @Override
+    protected IDistinctSendId getIDistinctSendId() {
+        return distinctSendId;
     }
 
     @Override
@@ -59,7 +68,10 @@ public class SendEmailMessage extends BaseSendMessage<EmailMessage> {
     @Override
     protected void internalSend(EmailMessage emailMessage) {
         log.info("### 同步发送邮件 {}", emailMessage.getSendId());
-        sendEmailService.sendEmail(emailMessage);
-        log.info("### 同步发送邮件 [成功] {}", emailMessage.getSendId());
+        if (sendEmailService.sendEmail(emailMessage)) {
+            log.info("### 同步发送邮件 [成功] {}", emailMessage.getSendId());
+        } else {
+            log.info("### 同步发送邮件 [失败] {}", emailMessage.getSendId());
+        }
     }
 }

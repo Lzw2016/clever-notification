@@ -1,7 +1,6 @@
 package org.clever.notification.service;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.clever.common.exception.BusinessException;
 import org.clever.notification.entity.EnumConstant;
 import org.clever.notification.entity.ReceiverBlackList;
@@ -10,15 +9,13 @@ import org.clever.notification.model.BaseMessage;
 import org.clever.notification.model.EmailMessage;
 import org.clever.notification.rabbit.producer.IExcludeBlackList;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.RedisCallback;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
+import java.util.*;
 
 /**
  * 作者： lzw<br/>
@@ -33,8 +30,19 @@ public class ReceiverBlackListService implements IExcludeBlackList {
      */
     private static final String KeyPrefix = "clever-notification:black-list";
 
+    /**
+     * 当前所有黑名单 Key
+     */
+    private static final String blackListSet = "clever-notification:black-list-set";
+
+    /**
+     * 所有黑名单 临时Key
+     */
+    private static final String blackListSetTmp = "clever-notification:black-list-set-tmp";
+
+
     @Autowired
-    private RedisTemplate<String, String> redisTemplate;
+    private StringRedisTemplate redisTemplate;
     @Autowired
     private ReceiverBlackListMapper receiverBlackListMapper;
 
@@ -42,30 +50,65 @@ public class ReceiverBlackListService implements IExcludeBlackList {
     @PostConstruct
     @Transactional
     public synchronized void load() {
-        // TODO 批量操作Redis
+        // 初始化 blackListSet blackListSetTmp
+        if (!redisTemplate.hasKey(blackListSet)) {
+            Set<String> set = redisTemplate.keys(KeyPrefix + ":*");
+            log.info("### set ={}", set.size());
+            if (set.size() <= 0) {
+                set.add("");
+            }
+            redisTemplate.opsForSet().add(blackListSet, set.toArray(new String[]{}));
+        }
+        if (!redisTemplate.hasKey(blackListSetTmp)) {
+            redisTemplate.opsForSet().add(blackListSetTmp, "");
+        }
+        // 查询所有黑名单
         int enabledCount = receiverBlackListMapper.updateEnabledByExpiredTime();
         List<ReceiverBlackList> receiverBlackLists = receiverBlackListMapper.findAllEnabled();
-        for (ReceiverBlackList receiverBlackList : receiverBlackLists) {
-            String key;
-            if (StringUtils.isBlank(receiverBlackList.getSysName())) {
-                // {KeyPrefix}:{message_type}:{account}
-                key = String.format("%s:%s:%s", KeyPrefix, receiverBlackList.getMessageType(), receiverBlackList.getAccount());
-            } else {
-                // {KeyPrefix}:{sys_name}:{message_type}:{account}
-                key = String.format("%s:%s:%s:%s", KeyPrefix, receiverBlackList.getSysName(), receiverBlackList.getMessageType(), receiverBlackList.getAccount());
+        // 删除当前不存在的数据
+        redisTemplate.executePipelined((RedisCallback<Void>) connection -> {
+            for (ReceiverBlackList receiverBlackList : receiverBlackLists) {
+                String key = String.format(
+                        "%s:%s:%s:%s",
+                        KeyPrefix,
+                        receiverBlackList.getSysName(),
+                        receiverBlackList.getMessageType(),
+                        receiverBlackList.getAccount()
+                );
+                connection.sAdd(blackListSetTmp.getBytes(), key.getBytes());
             }
-            if (receiverBlackList.getExpiredTime() != null) {
-                long timeout = receiverBlackList.getExpiredTime().getTime() - System.currentTimeMillis();
-                if (timeout > 0) {
-                    // 设置数据过期时间
-                    redisTemplate.opsForValue().set(key, receiverBlackList.getAccount(), timeout, TimeUnit.MILLISECONDS);
+            return null;
+        });
+        // 求差集
+        Set<String> keySet = redisTemplate.opsForSet().difference(blackListSet, blackListSetTmp);
+        redisTemplate.delete(keySet);
+        // 替换 blackListSetTmp -> blackListSet
+        redisTemplate.delete(blackListSet);
+        redisTemplate.rename(blackListSetTmp, blackListSet);
+        // 插入所有的黑名单数据
+        redisTemplate.executePipelined((RedisCallback<Void>) connection -> {
+            for (ReceiverBlackList receiverBlackList : receiverBlackLists) {
+                String key = String.format(
+                        "%s:%s:%s:%s",
+                        KeyPrefix,
+                        receiverBlackList.getSysName(),
+                        receiverBlackList.getMessageType(),
+                        receiverBlackList.getAccount()
+                );
+                if (receiverBlackList.getExpiredTime() != null) {
+                    long timeout = (receiverBlackList.getExpiredTime().getTime() - System.currentTimeMillis()) / 1000;
+                    if (timeout > 0) {
+                        // 设置数据过期时间
+                        connection.setEx(key.getBytes(), timeout, receiverBlackList.getAccount().getBytes());
+                    }
+                } else {
+                    // 不设置数据过期时间
+                    connection.setNX(key.getBytes(), receiverBlackList.getAccount().getBytes());
                 }
-            } else {
-                // 不设置数据过期时间
-                redisTemplate.opsForValue().set(key, receiverBlackList.getAccount());
             }
-        }
-        log.info("### 加载黑名单 加载黑名单数量:{} 禁用黑名单数量:{}", receiverBlackLists.size(), enabledCount);
+            return null;
+        });
+        log.info("### 加载黑名单数量:{} | 删除的黑名单数量：{} | 禁用黑名单数量:{}", receiverBlackLists.size(), keySet.size(), enabledCount);
     }
 
     /**
@@ -73,19 +116,17 @@ public class ReceiverBlackListService implements IExcludeBlackList {
      */
     @Override
     public boolean inBlackList(String sysName, Integer messageType, String account) {
-        // TODO 需要判断两次不好需要优化
         // 先找当前系统黑名单
         // {KeyPrefix}:{sys_name}:{message_type}:{account}
-        String key = String.format("%s:%s:%s:%s", KeyPrefix, sysName, messageType, account);
-        String value = redisTemplate.opsForValue().get(key);
-        if (value == null) {
-            // 再找全局黑名单
-            // {KeyPrefix}:{message_type}:{account}
-            key = String.format("%s:%s:%s", KeyPrefix, messageType, account);
-            value = redisTemplate.opsForValue().get(key);
-            return value != null;
-        }
-        return false;
+        final String key = String.format("%s:%s:%s:%s", KeyPrefix, sysName, messageType, account);
+        final String globalKey = String.format("%s:%s:%s:%s", KeyPrefix, EnumConstant.RootSysName, messageType, account);
+        List<String> values = redisTemplate.opsForValue().multiGet(new ArrayList<String>() {{
+            add(key);
+            add(globalKey);
+        }});
+        assert values != null;
+        String valueAccount = values.stream().filter(Objects::nonNull).findFirst().orElse(null);
+        return Objects.equals(account, valueAccount);
     }
 
     @SuppressWarnings("unchecked")

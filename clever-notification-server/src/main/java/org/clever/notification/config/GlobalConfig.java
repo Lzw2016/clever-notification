@@ -43,6 +43,11 @@ public class GlobalConfig {
      */
     private SnowFlakeConfig snowFlakeConfig;
 
+    /**
+     * 黑名单最大数量(小于等于0表示不限制)
+     */
+    private int blackListMaxCount = 10000 * 10;
+
     @Data
     public static class SnowFlakeConfig {
         /**

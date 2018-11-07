@@ -40,6 +40,11 @@ public abstract class BaseSendMessage<T extends BaseMessage> implements ISendMes
     protected abstract IFrequencyLimit getIFrequencyLimit();
 
     /**
+     * 去重 Message SendId 实现
+     */
+    protected abstract IDistinctSendId getIDistinctSendId();
+
+    /**
      * 发送消息之前处理
      */
     private T sendBefore(T baseMessage) {
@@ -59,8 +64,11 @@ public abstract class BaseSendMessage<T extends BaseMessage> implements ISendMes
     @Override
     public T send(T baseMessage) {
         baseMessage = sendBefore(baseMessage);
-        // 同步 发送消息
-        internalSend(baseMessage);
+        // 去重 Message SendId
+        if (!getIDistinctSendId().existsSendId(baseMessage.getSendId())) {
+            // 同步 发送消息
+            internalSend(baseMessage);
+        }
         return baseMessage;
     }
 

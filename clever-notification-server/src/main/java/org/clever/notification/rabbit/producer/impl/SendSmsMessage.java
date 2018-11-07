@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.clever.common.utils.SnowFlake;
 import org.clever.notification.model.SmsMessage;
 import org.clever.notification.rabbit.producer.BaseSendMessage;
+import org.clever.notification.rabbit.producer.IDistinctSendId;
 import org.clever.notification.rabbit.producer.IExcludeBlackList;
 import org.clever.notification.rabbit.producer.IFrequencyLimit;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +33,11 @@ public class SendSmsMessage extends BaseSendMessage<SmsMessage> {
 
     @Override
     protected IFrequencyLimit getIFrequencyLimit() {
+        return null;
+    }
+
+    @Override
+    protected IDistinctSendId getIDistinctSendId() {
         return null;
     }
 

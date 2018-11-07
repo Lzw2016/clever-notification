@@ -26,6 +26,7 @@ public class MessageTemplateService {
 
     @Autowired
     private Configuration configuration;
+    // TODO 使用Redis替换
     @Autowired
     private StringTemplateLoader stringTemplateLoader;
     @Autowired

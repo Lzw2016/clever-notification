@@ -30,4 +30,9 @@ public class EnumConstant {
      * 发送状态，3：发送成功
      */
     public static final Integer SendState_3 = 3;
+
+    /**
+     * 全局系统名
+     */
+    public static final String RootSysName = "root";
 }

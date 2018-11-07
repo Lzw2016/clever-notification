@@ -20,17 +20,17 @@ public class FrequencyLimit implements Serializable {
     private Long id;
 
     /**
-     * 系统名称(为空就是全局黑名单)
+     * 系统名称(全局使用“root”名称)
      */
     private String sysName;
 
     /**
-     * 消息类型，1：邮件；2：短信；...
+     * 消息类型，1：邮件；2：短信；...(消息类型为空表示对系统的限制)
      */
     private Integer messageType;
 
     /**
-     * 黑名单帐号
+     * 黑名单帐号(帐号为空表示对消息类型的限制)
      */
     private String account;
 

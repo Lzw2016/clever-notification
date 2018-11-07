@@ -70,7 +70,7 @@ create index message_send_log_send_id on message_send_log (send_id);
 create table receiver_black_list
 (
     id              bigint          not null        auto_increment                          comment '主键id',
-    sys_name        varchar(127)                                                            comment '系统名称(为空就是全局黑名单)',
+    sys_name        varchar(127)    not null                                                comment '系统名称(全局使用“root”名称)',
     message_type    int(1)          not null                                                comment '消息类型，1：邮件；2：短信；...',
     account         varchar(127)    not null                                                comment '黑名单帐号',
     enabled         int(1)          not null        default 1                               comment '是否启用，0：禁用；1：启用',
@@ -88,9 +88,9 @@ create index receiver_black_list_account on receiver_black_list (account);
 create table frequency_limit
 (
     id              bigint          not null        auto_increment                          comment '主键id',
-    sys_name        varchar(127)                                                            comment '系统名称(为空就是全局黑名单)',
-    message_type    int(1)          not null                                                comment '消息类型，1：邮件；2：短信；...',
-    account         varchar(127)    not null                                                comment '黑名单帐号',
+    sys_name        varchar(127)    not null                                                comment '系统名称(全局使用“root”名称)',
+    message_type    int(1)                                                                  comment '消息类型，1：邮件；2：短信；...(消息类型为空表示对系统的限制)',
+    account         varchar(127)                                                            comment '黑名单帐号(帐号为空表示对消息类型的限制)',
     enabled         int(1)          not null        default 1                               comment '是否启用，0：禁用；1：启用',
     expired_time    datetime(3)                                                             comment '黑名单帐号过期时间(到期自动禁用)',
     minutes_count   int             not null        default 0                               comment '一分钟内的发送次数(小于等于0表示不限制)', 

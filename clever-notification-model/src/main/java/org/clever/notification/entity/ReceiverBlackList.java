@@ -20,7 +20,7 @@ public class ReceiverBlackList implements Serializable {
     private Long id;
 
     /**
-     * 系统名称(为空就是全局黑名单)
+     * 系统名称(全局使用“root”名称)
      */
     private String sysName;
 
