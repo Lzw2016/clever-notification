@@ -1,6 +1,5 @@
 package org.clever.notification.service;
 
-import freemarker.cache.StringTemplateLoader;
 import freemarker.template.Configuration;
 import lombok.extern.slf4j.Slf4j;
 import org.clever.notification.entity.MessageTemplate;
@@ -26,9 +25,8 @@ public class MessageTemplateService {
 
     @Autowired
     private Configuration configuration;
-    // TODO 使用Redis替换
     @Autowired
-    private StringTemplateLoader stringTemplateLoader;
+    private RedisStringTemplateLoader redisStringTemplateLoader;
     @Autowired
     private MessageTemplateMapper messageTemplateMapper;
     /**
@@ -38,7 +36,7 @@ public class MessageTemplateService {
 
     @PostConstruct
     private void init() {
-        configuration.setTemplateLoader(stringTemplateLoader);
+        configuration.setTemplateLoader(redisStringTemplateLoader);
         load();
     }
 
@@ -54,7 +52,7 @@ public class MessageTemplateService {
         delTemplateNames.removeAll(newTemplateNames);
         // 删除
         for (String name : delTemplateNames) {
-            stringTemplateLoader.removeTemplate(name);
+            redisStringTemplateLoader.removeTemplate(name);
         }
         // 更新
         for (MessageTemplate messageTemplate : messageTemplateList) {
@@ -65,7 +63,7 @@ public class MessageTemplateService {
             if (lastModified == null) {
                 lastModified = new Date();
             }
-            stringTemplateLoader.putTemplate(messageTemplate.getName(), messageTemplate.getContent(), lastModified.getTime());
+            redisStringTemplateLoader.putTemplate(messageTemplate.getName(), messageTemplate.getContent(), lastModified.getTime());
         }
         oldTemplateNames = newTemplateNames;
         log.info("### 加载所有消息模版, 新增/更新: {} -> 删除:{}", messageTemplateList.size(), delTemplateNames.size());
@@ -75,6 +73,6 @@ public class MessageTemplateService {
      * 判断消息模版是否存在
      */
     public boolean templateExists(String templateName) {
-        return stringTemplateLoader.findTemplateSource(templateName) != null;
+        return redisStringTemplateLoader.findTemplateSource(templateName) != null;
     }
 }
