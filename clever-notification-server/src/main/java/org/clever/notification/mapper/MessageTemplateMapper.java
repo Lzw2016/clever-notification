@@ -11,5 +11,5 @@ import java.util.List;
  */
 public interface MessageTemplateMapper extends BaseMapper<MessageTemplate> {
 
-    List<MessageTemplate> getAllEnabled();
+    List<MessageTemplate> findAllEnabled();
 }

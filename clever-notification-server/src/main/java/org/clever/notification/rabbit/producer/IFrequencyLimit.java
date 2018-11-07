@@ -14,11 +14,12 @@ public interface IFrequencyLimit {
     /**
      * 帐号是否发送频率超限
      *
+     * @param sysName     系统名
      * @param messageType 消息类型
      * @param account     帐号
      * @return true:发送频率超限；false:发送频率没有超限
      */
-    boolean frequencyLimit(Integer messageType, String account);
+    boolean frequencyLimit(String sysName, Integer messageType, String account);
 
     /**
      * 从发送者列表中排除发送频率超限的帐号

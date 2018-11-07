@@ -48,6 +48,11 @@ public class GlobalConfig {
      */
     private int blackListMaxCount = 10000 * 10;
 
+    /**
+     * 限制消息发送频率配置的最大数量(小于等于0表示不限制)
+     */
+    private int frequencyLimitMaxCount = 10000 * 5;
+
     @Data
     public static class SnowFlakeConfig {
         /**

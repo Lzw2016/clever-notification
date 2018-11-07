@@ -46,7 +46,7 @@ public class MessageTemplateService {
      * 加载数据库中所有的消息模版
      */
     public synchronized void load() {
-        List<MessageTemplate> messageTemplateList = messageTemplateMapper.getAllEnabled();
+        List<MessageTemplate> messageTemplateList = messageTemplateMapper.findAllEnabled();
         Set<String> newTemplateNames = new HashSet<>();
         messageTemplateList.forEach(messageTemplate -> newTemplateNames.add(messageTemplate.getName()));
         // 计算要删除的模版 - 以前有现在没有

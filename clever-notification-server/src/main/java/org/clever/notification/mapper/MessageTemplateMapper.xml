@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <!--suppress CheckTagEmptyBody, SqlDialectInspection, SqlNoDataSourceInspection, SqlResolve -->
 <mapper namespace="org.clever.notification.mapper.MessageTemplateMapper">
-    <select id="getAllEnabled" resultType="org.clever.notification.entity.MessageTemplate">
+    <select id="findAllEnabled" resultType="org.clever.notification.entity.MessageTemplate">
         select * from message_template where enabled=1
     </select>
 </mapper>

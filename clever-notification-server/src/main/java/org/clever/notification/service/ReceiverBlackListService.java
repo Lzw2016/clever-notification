@@ -68,6 +68,7 @@ public class ReceiverBlackListService implements IExcludeBlackList {
         // 删除当前不存在的数据
         redisTemplate.executePipelined((RedisCallback<Void>) connection -> {
             for (ReceiverBlackList receiverBlackList : receiverBlackLists) {
+                // {KeyPrefix}:{sys_name}:{message_type}:{account}
                 String key = String.format(
                         "%s:%s:%s:%s",
                         KeyPrefix,
@@ -88,6 +89,7 @@ public class ReceiverBlackListService implements IExcludeBlackList {
         // 插入所有的黑名单数据
         redisTemplate.executePipelined((RedisCallback<Void>) connection -> {
             for (ReceiverBlackList receiverBlackList : receiverBlackLists) {
+                // {KeyPrefix}:{sys_name}:{message_type}:{account}
                 String key = String.format(
                         "%s:%s:%s:%s",
                         KeyPrefix,
@@ -116,7 +118,6 @@ public class ReceiverBlackListService implements IExcludeBlackList {
      */
     @Override
     public boolean inBlackList(String sysName, Integer messageType, String account) {
-        // 先找当前系统黑名单
         // {KeyPrefix}:{sys_name}:{message_type}:{account}
         final String key = String.format("%s:%s:%s:%s", KeyPrefix, sysName, messageType, account);
         final String globalKey = String.format("%s:%s:%s:%s", KeyPrefix, EnumConstant.RootSysName, messageType, account);
