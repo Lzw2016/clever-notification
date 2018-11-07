@@ -46,14 +46,13 @@ public class ReceiverBlackListService implements IExcludeBlackList {
     @Autowired
     private ReceiverBlackListMapper receiverBlackListMapper;
 
-    @SuppressWarnings("ConstantConditions")
+    @SuppressWarnings({"ConstantConditions", "Duplicates"})
     @PostConstruct
     @Transactional
     public synchronized void load() {
         // 初始化 blackListSet blackListSetTmp
         if (!redisTemplate.hasKey(blackListSet)) {
             Set<String> set = redisTemplate.keys(KeyPrefix + ":*");
-            log.info("### set ={}", set.size());
             if (set.size() <= 0) {
                 set.add("");
             }

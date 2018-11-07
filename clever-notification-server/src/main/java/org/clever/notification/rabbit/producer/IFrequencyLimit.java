@@ -28,4 +28,9 @@ public interface IFrequencyLimit {
      * @return 除去黑名单接受者的消息
      */
     <T extends BaseMessage> T removeFrequencyLimit(T message);
+
+    /**
+     * 发送一次请求增加对应的发送频率
+     */
+    <T extends BaseMessage> T addFrequency(T message);
 }

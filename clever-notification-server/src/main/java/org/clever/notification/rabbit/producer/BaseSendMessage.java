@@ -68,6 +68,7 @@ public abstract class BaseSendMessage<T extends BaseMessage> implements ISendMes
         if (!getIDistinctSendId().existsSendId(baseMessage.getSendId())) {
             // 同步 发送消息
             internalSend(baseMessage);
+            baseMessage = sendAfter(baseMessage);
         }
         return baseMessage;
     }
@@ -77,6 +78,16 @@ public abstract class BaseSendMessage<T extends BaseMessage> implements ISendMes
         baseMessage = sendBefore(baseMessage);
         // 异步 发送消息
         internalAsyncSend(baseMessage);
+        baseMessage = sendAfter(baseMessage);
+        return baseMessage;
+    }
+
+    /**
+     * 发送消息之后处理
+     */
+    private T sendAfter(T baseMessage) {
+        // 增加对应消息的发送频率
+        baseMessage = getIFrequencyLimit().addFrequency(baseMessage);
         return baseMessage;
     }
 }

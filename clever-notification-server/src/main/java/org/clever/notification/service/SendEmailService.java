@@ -130,7 +130,7 @@ public class SendEmailService {
     }
 
     /**
-     * 发送邮件
+     * 发送邮件 TODO 发送邮件需要单独拆开(时间过长事务过长)
      */
     @Transactional
     public boolean sendEmail(EmailMessage emailMessage) {
