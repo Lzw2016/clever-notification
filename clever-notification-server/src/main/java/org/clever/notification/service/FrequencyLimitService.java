@@ -123,7 +123,7 @@ public class FrequencyLimitService implements IFrequencyLimit {
                     }
                 } else {
                     // 不设置数据过期时间
-                    connection.setNX(key.getBytes(), value.getBytes());
+                    connection.set(key.getBytes(), value.getBytes());
                 }
             }
             return null;
