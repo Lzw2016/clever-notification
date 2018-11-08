@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.clever.common.exception.BusinessException;
 import org.clever.common.utils.mapper.JacksonMapper;
 import org.clever.notification.entity.EnumConstant;
@@ -13,6 +14,7 @@ import org.clever.notification.model.BaseMessage;
 import org.clever.notification.model.EmailMessage;
 import org.clever.notification.rabbit.producer.IFrequencyLimit;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -28,6 +31,7 @@ import java.util.Set;
  * 作者： lzw<br/>
  * 创建时间：2018-11-07 14:06 <br/>
  */
+@SuppressWarnings("Duplicates")
 @Service
 @Slf4j
 public class FrequencyLimitService implements IFrequencyLimit {
@@ -40,12 +44,12 @@ public class FrequencyLimitService implements IFrequencyLimit {
     /**
      * 当前所有频率限制配置 Key
      */
-    private static final String frequencyLimitSet = "clever-notification:frequency-limit-config-set";
+    private static final String frequencyLimitSet = "clever-notification:frequency-limit-config:set";
 
     /**
      * 所有频率限制配置 临时Key
      */
-    private static final String frequencyLimitSetTmp = "clever-notification:frequency-limit-config-set-tmp";
+    private static final String frequencyLimitSetTmp = "clever-notification:frequency-limit-config:set-tmp";
 
     /**
      * 账号发送频率数据 key前缀
@@ -84,17 +88,11 @@ public class FrequencyLimitService implements IFrequencyLimit {
         // 删除当前不存在的数据
         redisTemplate.executePipelined((RedisCallback<Void>) connection -> {
             for (FrequencyLimit frequencyLimit : frequencyLimits) {
-                String key;
-                // TODO 判断空不是非空
-                if (StringUtils.isNotBlank(frequencyLimit.getAccount()) && frequencyLimit.getMessageType() != null) {
-                    // {ConfigKeyPrefix}:{sys_name}:{message_type}:{account}
-                    key = String.format("%s:%s:%s:%s", ConfigKeyPrefix, frequencyLimit.getSysName(), frequencyLimit.getMessageType(), frequencyLimit.getAccount());
-                } else if (frequencyLimit.getMessageType() != null) {
-                    // {ConfigKeyPrefix}:{sys_name}:{message_type}
-                    key = String.format("%s:%s:%s", ConfigKeyPrefix, frequencyLimit.getSysName(), frequencyLimit.getMessageType());
-                } else {
-                    // {ConfigKeyPrefix}:{sys_name}
-                    key = String.format("%s:%s", ConfigKeyPrefix, frequencyLimit.getSysName());
+                String key = getConfigKey(frequencyLimit);
+                if (StringUtils.isBlank(key)) {
+                    frequencyLimitMapper.deleteById(frequencyLimit.getId());
+                    log.warn("### 删除无效配置 {}", frequencyLimit);
+                    continue;
                 }
                 connection.sAdd(frequencyLimitSetTmp.getBytes(), key.getBytes());
             }
@@ -110,17 +108,11 @@ public class FrequencyLimitService implements IFrequencyLimit {
         // 插入所有的黑名单数据
         redisTemplate.executePipelined((RedisCallback<Void>) connection -> {
             for (FrequencyLimit frequencyLimit : frequencyLimits) {
-                String key;
-                // TODO 判断空不是非空
-                if (StringUtils.isNotBlank(frequencyLimit.getAccount()) && frequencyLimit.getMessageType() != null) {
-                    // {ConfigKeyPrefix}:{sys_name}:{message_type}:{account}
-                    key = String.format("%s:%s:%s:%s", ConfigKeyPrefix, frequencyLimit.getSysName(), frequencyLimit.getMessageType(), frequencyLimit.getAccount());
-                } else if (frequencyLimit.getMessageType() != null) {
-                    // {ConfigKeyPrefix}:{sys_name}:{message_type}
-                    key = String.format("%s:%s:%s", ConfigKeyPrefix, frequencyLimit.getSysName(), frequencyLimit.getMessageType());
-                } else {
-                    // {ConfigKeyPrefix}:{sys_name}
-                    key = String.format("%s:%s", ConfigKeyPrefix, frequencyLimit.getSysName());
+                String key = getConfigKey(frequencyLimit);
+                if (StringUtils.isBlank(key)) {
+                    frequencyLimitMapper.deleteById(frequencyLimit.getId());
+                    log.warn("### 删除无效配置 {}", frequencyLimit);
+                    continue;
                 }
                 String value = JacksonMapper.nonEmptyMapper().toJson(new FrequencyLimitCount(frequencyLimit));
                 if (frequencyLimit.getExpiredTime() != null) {
@@ -139,9 +131,117 @@ public class FrequencyLimitService implements IFrequencyLimit {
         log.info("### 加载发送频率配置数量:{} | 删除的发送频率配置数量：{} | 禁用发送频率配置数量:{}", frequencyLimits.size(), keySet.size(), enabledCount);
     }
 
+    private String getConfigKey(FrequencyLimit frequencyLimit) {
+        // {ConfigKeyPrefix}:{sys_name}:{message_type}:{account}
+        // {ConfigKeyPrefix}:{sys_name}:{message_type}
+        // {ConfigKeyPrefix}:{sys_name}
+        String key;
+        if (StringUtils.isBlank(frequencyLimit.getAccount()) && frequencyLimit.getMessageType() == null) {
+            key = String.format("%s:%s", ConfigKeyPrefix, frequencyLimit.getSysName());
+        } else if (StringUtils.isBlank(frequencyLimit.getAccount()) && frequencyLimit.getMessageType() != null) {
+            key = String.format("%s:%s:%s", ConfigKeyPrefix, frequencyLimit.getSysName(), frequencyLimit.getMessageType());
+        } else if (StringUtils.isNotBlank(frequencyLimit.getAccount()) && frequencyLimit.getMessageType() != null) {
+            key = String.format("%s:%s:%s:%s", ConfigKeyPrefix, frequencyLimit.getSysName(), frequencyLimit.getMessageType(), frequencyLimit.getAccount());
+        } else {
+            key = null;
+        }
+        return key;
+
+    }
+
     @Override
     public boolean frequencyLimit(String sysName, Integer messageType, String account) {
-        // TODO 判断是否频率超限
+        // 判断是否频率超限
+        FrequencyLimitCount frequencyLimitCount = existsConfig(sysName, messageType, account);
+        if (frequencyLimitCount == null) {
+            return false;
+        }
+        if (frequencyLimitCount.getMinutesCount() <= 0
+                && frequencyLimitCount.getHoursCount() <= 0
+                && frequencyLimitCount.getDaysCount() <= 0
+                && frequencyLimitCount.getWeeksCount() <= 0
+                && frequencyLimitCount.getMonthsCount() <= 0) {
+            return false;
+        }
+        // {KeyPrefix}:{sys_name}:{message_type}:{account}:minutes-count
+        // {KeyPrefix}:{sys_name}:{message_type}:{account}:hours-count
+        // {KeyPrefix}:{sys_name}:{message_type}:{account}:days-count
+        // {KeyPrefix}:{sys_name}:{message_type}:{account}:weeks-count
+        // {KeyPrefix}:{sys_name}:{message_type}:{account}:months-count
+        final String minutesKey = String.format("%s:%s:%s:%s:minutes-count", KeyPrefix, sysName, messageType, account);
+        final String hoursKey = String.format("%s:%s:%s:%s:hours-count", KeyPrefix, sysName, messageType, account);
+        final String daysKey = String.format("%s:%s:%s:%s:days-count", KeyPrefix, sysName, messageType, account);
+        final String weeksKey = String.format("%s:%s:%s:%s:weeks-count", KeyPrefix, sysName, messageType, account);
+        final String monthsKey = String.format("%s:%s:%s:%s:months-count", KeyPrefix, sysName, messageType, account);
+        List<String> keyList = new ArrayList<String>() {{
+            add(minutesKey);
+            add(hoursKey);
+            add(daysKey);
+            add(weeksKey);
+            add(monthsKey);
+        }};
+        List<String> countList = redisTemplate.opsForValue().multiGet(keyList);
+        assert countList != null;
+        for (int i = 0; i < countList.size(); i++) {
+            if ((i == 0 && frequencyLimitCount.getMinutesCount() <= 0)
+                    || (i == 1 && frequencyLimitCount.getHoursCount() <= 0)
+                    || (i == 2 && frequencyLimitCount.getDaysCount() <= 0)
+                    || (i == 3 && frequencyLimitCount.getWeeksCount() <= 0)
+                    || (i == 4 && frequencyLimitCount.getMonthsCount() <= 0)) {
+                continue;
+            }
+            int count = NumberUtils.toInt(countList.get(i), -1);
+            if (count <= 0) {
+                continue;
+            }
+            switch (i) {
+                case 0:
+                    if (frequencyLimitCount.getMinutesCount() <= count) {
+                        log.info(
+                                "### 发送频率频率超限 [系统:{} | 消息类型:{} | 账号:{}] [每分钟最大发送次数:{} | 当前次数:{}]",
+                                sysName, messageType, account, frequencyLimitCount.getMinutesCount(), count + 1
+                        );
+                        return true;
+                    }
+                    break;
+                case 1:
+                    if (frequencyLimitCount.getHoursCount() <= count) {
+                        log.info(
+                                "### 发送频率频率超限 [系统:{} | 消息类型:{} | 账号:{}] [每小时最大发送次数:{} | 当前次数:{}]",
+                                sysName, messageType, account, frequencyLimitCount.getHoursCount(), count + 1
+                        );
+                        return true;
+                    }
+                    break;
+                case 2:
+                    if (frequencyLimitCount.getDaysCount() <= count) {
+                        log.info(
+                                "### 发送频率频率超限 [系统:{} | 消息类型:{} | 账号:{}] [每天最大发送次数:{} | 当前次数:{}]",
+                                sysName, messageType, account, frequencyLimitCount.getDaysCount(), count + 1
+                        );
+                        return true;
+                    }
+                    break;
+                case 3:
+                    if (frequencyLimitCount.getWeeksCount() <= count) {
+                        log.info(
+                                "### 发送频率频率超限 [系统:{} | 消息类型:{} | 账号:{}] [每周最大发送次数:{} | 当前次数:{}]",
+                                sysName, messageType, account, frequencyLimitCount.getWeeksCount(), count + 1
+                        );
+                        return true;
+                    }
+                    break;
+                case 4:
+                    if (frequencyLimitCount.getMonthsCount() <= count) {
+                        log.info(
+                                "### 发送频率频率超限 [系统:{} | 消息类型:{} | 账号:{}] [每月最大发送次数:{} | 当前次数:{}]",
+                                sysName, messageType, account, frequencyLimitCount.getMonthsCount(), count + 1
+                        );
+                        return true;
+                    }
+                    break;
+            }
+        }
         return false;
     }
 
@@ -203,68 +303,95 @@ public class FrequencyLimitService implements IFrequencyLimit {
             accountSet.addAll(emailMessage.getBcc());
         }
         redisTemplate.executePipelined((RedisCallback<Void>) connection -> {
-            // TODO connection.exists在Pipelined中无效
             for (String account : accountSet) {
-                // {ConfigKeyPrefix}:{sys_name}:{message_type}:{account}
-                // {ConfigKeyPrefix}:{sys_name}:{message_type}
-                // {ConfigKeyPrefix}:{sys_name}
-                String key = String.format("%s:%s:%s:%s", ConfigKeyPrefix, emailMessage.getSysName(), EnumConstant.MessageType_1, account);
-                Boolean exists = connection.exists(key.getBytes());
-                if (exists == null || !exists) {
-                    key = String.format("%s:%s:%s", ConfigKeyPrefix, emailMessage.getSysName(), EnumConstant.MessageType_1);
-                    exists = connection.exists(key.getBytes());
-                    if (exists == null || !exists) {
-                        key = String.format("%s:%s", ConfigKeyPrefix, emailMessage.getSysName());
-                        exists = connection.exists(key.getBytes());
-                        if (exists == null || !exists) {
-                            continue;
-                        }
-                    }
-                }
-                // {KeyPrefix}:{sys_name}:{message_type}:{account}:minutes-count
-                // {KeyPrefix}:{sys_name}:{message_type}:{account}:hours-count
-                // {KeyPrefix}:{sys_name}:{message_type}:{account}:days-count
-                // {KeyPrefix}:{sys_name}:{message_type}:{account}:weeks-count
-                // {KeyPrefix}:{sys_name}:{message_type}:{account}:months-count
-                String minutesKey = String.format("%s:%s:%s:%s:minutes-count", KeyPrefix, emailMessage.getSysName(), EnumConstant.MessageType_1, account);
-                String hoursKey = String.format("%s:%s:%s:%s:hours-count", KeyPrefix, emailMessage.getSysName(), EnumConstant.MessageType_1, account);
-                String daysKey = String.format("%s:%s:%s:%s:days-count", KeyPrefix, emailMessage.getSysName(), EnumConstant.MessageType_1, account);
-                String weeksKey = String.format("%s:%s:%s:%s:weeks-count", KeyPrefix, emailMessage.getSysName(), EnumConstant.MessageType_1, account);
-                String monthsKey = String.format("%s:%s:%s:%s:months-count", KeyPrefix, emailMessage.getSysName(), EnumConstant.MessageType_1, account);
-                exists = connection.exists(minutesKey.getBytes());
-                if (exists == null || !exists) {
-                    connection.setEx(minutesKey.getBytes(), MinuteBySecond, "1".getBytes());
-                } else {
-                    connection.incr(minutesKey.getBytes());
-                }
-                exists = connection.exists(hoursKey.getBytes());
-                if (exists == null || !exists) {
-                    connection.setEx(hoursKey.getBytes(), HourBySecond, "1".getBytes());
-                } else {
-                    connection.incr(hoursKey.getBytes());
-                }
-                exists = connection.exists(daysKey.getBytes());
-                if (exists == null || !exists) {
-                    connection.setEx(daysKey.getBytes(), DayBySecond, "1".getBytes());
-                } else {
-                    connection.incr(daysKey.getBytes());
-                }
-                exists = connection.exists(weeksKey.getBytes());
-                if (exists == null || !exists) {
-                    connection.setEx(weeksKey.getBytes(), WeekBySecond, "1".getBytes());
-                } else {
-                    connection.incr(weeksKey.getBytes());
-                }
-                exists = connection.exists(monthsKey.getBytes());
-                if (exists == null || !exists) {
-                    connection.setEx(monthsKey.getBytes(), MonthBySecond, "1".getBytes());
-                } else {
-                    connection.incr(monthsKey.getBytes());
-                }
+                FrequencyLimitCount frequencyLimitCount = existsConfig(emailMessage.getSysName(), EnumConstant.MessageType_1, account);
+                addFrequency(connection, frequencyLimitCount, emailMessage.getSysName(), EnumConstant.MessageType_1, account);
             }
             return null;
         });
         return emailMessage;
+    }
+
+    /**
+     * 返回存在的限速配置
+     */
+    private FrequencyLimitCount existsConfig(String sysName, Integer messageType, String account) {
+        FrequencyLimitCount frequencyLimitCount = new FrequencyLimitCount();
+        // {ConfigKeyPrefix}:{sys_name}
+        // {ConfigKeyPrefix}:{sys_name}:{message_type}
+        // {ConfigKeyPrefix}:{sys_name}:{message_type}:{account}
+        List<String> configList = redisTemplate.opsForValue().multiGet(new ArrayList<String>() {{
+            add(String.format("%s:%s", ConfigKeyPrefix, sysName));
+            add(String.format("%s:%s:%s", ConfigKeyPrefix, sysName, messageType));
+            add(String.format("%s:%s:%s:%s", ConfigKeyPrefix, sysName, messageType, account));
+        }});
+        assert configList != null;
+        for (String config : configList) {
+            if (StringUtils.isNotBlank(config)) {
+                FrequencyLimitCount tmp = JacksonMapper.nonEmptyMapper().fromJson(config, FrequencyLimitCount.class);
+                frequencyLimitCount.merge(tmp);
+            }
+        }
+        return frequencyLimitCount;
+    }
+
+    /**
+     * 增加发送频率
+     */
+    @SuppressWarnings("Duplicates")
+    private void addFrequency(RedisConnection connection, FrequencyLimitCount frequencyLimitCount, String sysName, Integer messageType, String account) {
+        if (connection == null || frequencyLimitCount == null) {
+            return;
+        }
+        if (frequencyLimitCount.getMinutesCount() <= 0
+                && frequencyLimitCount.getHoursCount() <= 0
+                && frequencyLimitCount.getDaysCount() <= 0
+                && frequencyLimitCount.getWeeksCount() <= 0
+                && frequencyLimitCount.getMonthsCount() <= 0) {
+            return;
+        }
+        // {KeyPrefix}:{sys_name}:{message_type}:{account}:minutes-count
+        // {KeyPrefix}:{sys_name}:{message_type}:{account}:hours-count
+        // {KeyPrefix}:{sys_name}:{message_type}:{account}:days-count
+        // {KeyPrefix}:{sys_name}:{message_type}:{account}:weeks-count
+        // {KeyPrefix}:{sys_name}:{message_type}:{account}:months-count
+        final String minutesKey = String.format("%s:%s:%s:%s:minutes-count", KeyPrefix, sysName, messageType, account);
+        final String hoursKey = String.format("%s:%s:%s:%s:hours-count", KeyPrefix, sysName, messageType, account);
+        final String daysKey = String.format("%s:%s:%s:%s:days-count", KeyPrefix, sysName, messageType, account);
+        final String weeksKey = String.format("%s:%s:%s:%s:weeks-count", KeyPrefix, sysName, messageType, account);
+        final String monthsKey = String.format("%s:%s:%s:%s:months-count", KeyPrefix, sysName, messageType, account);
+        List<String> keyList = new ArrayList<String>() {{
+            add(minutesKey);
+            add(hoursKey);
+            add(daysKey);
+            add(weeksKey);
+            add(monthsKey);
+        }};
+        List<Long> secondsList = new ArrayList<Long>() {{
+            add(MinuteBySecond);
+            add(HourBySecond);
+            add(DayBySecond);
+            add(WeekBySecond);
+            add(MonthBySecond);
+        }};
+        List<String> countList = redisTemplate.opsForValue().multiGet(keyList);
+        assert countList != null;
+        for (int i = 0; i < countList.size(); i++) {
+            if ((i == 0 && frequencyLimitCount.getMinutesCount() <= 0)
+                    || (i == 1 && frequencyLimitCount.getHoursCount() <= 0)
+                    || (i == 2 && frequencyLimitCount.getDaysCount() <= 0)
+                    || (i == 3 && frequencyLimitCount.getWeeksCount() <= 0)
+                    || (i == 4 && frequencyLimitCount.getMonthsCount() <= 0)) {
+                continue;
+            }
+            String key = keyList.get(i);
+            String count = countList.get(i);
+            if (StringUtils.isBlank(count)) {
+                connection.setEx(key.getBytes(), secondsList.get(i), "1".getBytes());
+            } else {
+                connection.incr(key.getBytes());
+            }
+        }
     }
 
     @NoArgsConstructor
@@ -273,27 +400,27 @@ public class FrequencyLimitService implements IFrequencyLimit {
         /**
          * 一分钟内的发送次数(小于等于0表示不限制)
          */
-        private Integer minutesCount;
+        private int minutesCount = -1;
 
         /**
          * 一小时内的发送次数(小于等于0表示不限制)
          */
-        private Integer hoursCount;
+        private int hoursCount = -1;
 
         /**
          * 一天内的发送次数(小于等于0表示不限制)
          */
-        private Integer daysCount;
+        private int daysCount = -1;
 
         /**
          * 一周内的发送次数(小于等于0表示不限制)
          */
-        private Integer weeksCount;
+        private int weeksCount = -1;
 
         /**
          * 一月内的发送次数(小于等于0表示不限制)
          */
-        private Integer monthsCount;
+        private int monthsCount = -1;
 
         FrequencyLimitCount(FrequencyLimit frequencyLimit) {
             minutesCount = frequencyLimit.getMinutesCount();
@@ -301,6 +428,30 @@ public class FrequencyLimitService implements IFrequencyLimit {
             daysCount = frequencyLimit.getDaysCount();
             weeksCount = frequencyLimit.getWeeksCount();
             monthsCount = frequencyLimit.getMonthsCount();
+        }
+
+        /**
+         * 合并限速配置
+         */
+        void merge(FrequencyLimitCount frequencyLimitCount) {
+            if (frequencyLimitCount == null) {
+                return;
+            }
+            if (minutesCount <= 0) {
+                minutesCount = frequencyLimitCount.minutesCount;
+            }
+            if (hoursCount <= 0) {
+                hoursCount = frequencyLimitCount.hoursCount;
+            }
+            if (daysCount <= 0) {
+                daysCount = frequencyLimitCount.daysCount;
+            }
+            if (weeksCount <= 0) {
+                weeksCount = frequencyLimitCount.weeksCount;
+            }
+            if (monthsCount <= 0) {
+                monthsCount = frequencyLimitCount.monthsCount;
+            }
         }
     }
 }

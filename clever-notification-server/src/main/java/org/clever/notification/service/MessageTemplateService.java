@@ -2,6 +2,7 @@ package org.clever.notification.service;
 
 import freemarker.template.Configuration;
 import lombok.extern.slf4j.Slf4j;
+import org.clever.common.utils.exception.ExceptionUtils;
 import org.clever.notification.entity.MessageTemplate;
 import org.clever.notification.mapper.MessageTemplateMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
+import java.io.IOException;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -36,6 +38,7 @@ public class MessageTemplateService {
 
     @PostConstruct
     private void init() {
+        // configuration.unsetLocale();
         configuration.setTemplateLoader(redisStringTemplateLoader);
         load();
     }
@@ -52,6 +55,7 @@ public class MessageTemplateService {
         delTemplateNames.removeAll(newTemplateNames);
         // 删除
         for (String name : delTemplateNames) {
+            log.info("### 删除缓存消息模板");
             redisStringTemplateLoader.removeTemplate(name);
         }
         // 更新
@@ -73,6 +77,10 @@ public class MessageTemplateService {
      * 判断消息模版是否存在
      */
     public boolean templateExists(String templateName) {
-        return redisStringTemplateLoader.findTemplateSource(templateName) != null;
+        try {
+            return configuration.getTemplate(templateName) != null;
+        } catch (IOException e) {
+            throw ExceptionUtils.unchecked(e);
+        }
     }
 }

@@ -33,12 +33,12 @@ public class ReceiverBlackListService implements IExcludeBlackList {
     /**
      * 当前所有黑名单 Key
      */
-    private static final String blackListSet = "clever-notification:black-list-set";
+    private static final String blackListSet = "clever-notification:black-list:set";
 
     /**
      * 所有黑名单 临时Key
      */
-    private static final String blackListSetTmp = "clever-notification:black-list-set-tmp";
+    private static final String blackListSetTmp = "clever-notification:black-list:set-tmp";
 
 
     @Autowired

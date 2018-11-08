@@ -44,9 +44,19 @@ public class GlobalConfig {
     private SnowFlakeConfig snowFlakeConfig;
 
     /**
+     * TODO 是否启用黑名单 (数据库全局实现?)
+     */
+    private boolean enableBlackList = true;
+
+    /**
      * 黑名单最大数量(小于等于0表示不限制)
      */
     private int blackListMaxCount = 10000 * 10;
+
+    /**
+     * TODO 是否启用发送评率限制 (数据库全局实现?)
+     */
+    private boolean enableFrequencyLimit = true;
 
     /**
      * 限制消息发送频率配置的最大数量(小于等于0表示不限制)

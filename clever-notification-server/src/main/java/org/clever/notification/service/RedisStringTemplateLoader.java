@@ -1,6 +1,7 @@
 package org.clever.notification.service;
 
 import freemarker.cache.TemplateLoader;
+import freemarker.template.Configuration;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -10,7 +11,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.Reader;
 import java.io.StringReader;
-import java.util.Set;
+import java.util.Locale;
 
 /**
  * 作者： lzw<br/>
@@ -28,6 +29,8 @@ public class RedisStringTemplateLoader implements TemplateLoader {
 
     @Autowired
     private RedisTemplate<Object, Object> redisTemplate;
+    @Autowired
+    private Configuration configuration;
 
     public void putTemplate(String name, String templateContent) {
         putTemplate(name, templateContent, System.currentTimeMillis());
@@ -47,7 +50,30 @@ public class RedisStringTemplateLoader implements TemplateLoader {
 
     @Override
     public Object findTemplateSource(String name) {
-        return redisTemplate.opsForValue().get(String.format("%s:%s", KeyPrefix, name));
+        // 除去模板名称后缀
+        Locale templateLocale = configuration.getLocale();
+        if (templateLocale != null) {
+            String suffix = "_" + templateLocale.toString();
+            while (true) {
+                if (name.endsWith(suffix)) {
+                    name = name.substring(0, name.length() - suffix.length());
+                    break;
+                }
+                int lastUnderscore = suffix.lastIndexOf('_');
+                if (lastUnderscore < 0) {
+                    break;
+                }
+                suffix = suffix.substring(0, lastUnderscore);
+            }
+        }
+        // 获取模板
+        String key = String.format("%s:%s", KeyPrefix, name);
+        log.debug("### 从Redis读取模板模板 -> {}", key);
+        Object object = redisTemplate.opsForValue().get(key);
+        if (object == null) {
+            log.info("### 模板不存在 -> {}", key);
+        }
+        return object;
     }
 
     @Override
@@ -62,10 +88,10 @@ public class RedisStringTemplateLoader implements TemplateLoader {
 
     @Override
     public void closeTemplateSource(Object templateSource) {
-        Set<Object> set = redisTemplate.keys(KeyPrefix + ":*");
-        if (set != null && set.size() > 0) {
-            redisTemplate.delete(set);
-        }
+//        Set<Object> set = redisTemplate.keys(KeyPrefix + ":*");
+//        if (set != null && set.size() > 0) {
+//            redisTemplate.delete(set);
+//        }
     }
 
     @Getter
