@@ -7,6 +7,7 @@ import org.clever.notification.rabbit.producer.IDistinctSendId;
 import org.clever.notification.rabbit.producer.IExcludeBlackList;
 import org.clever.notification.rabbit.producer.IFrequencyLimit;
 import org.clever.notification.service.SendEmailService;
+import org.clever.notification.utils.AsyncNotice;
 import org.springframework.amqp.rabbit.annotation.RabbitHandler;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,15 +44,18 @@ public class SendEmailNotification {
             // 发送频率限制
             emailMessage = frequencyLimit.removeFrequencyLimit(emailMessage);
             if (sendEmailService.sendEmail(emailMessage)) {
-                // TODO 异步通知成功
+                // 异步通知成功
+                AsyncNotice.successNotice(emailMessage);
                 log.info("### 处理发送邮件 [成功] {}", emailMessage.getSendId());
             } else {
-                // TODO 异步通知失败
+                // 异步通知失败
+                AsyncNotice.failNotice(emailMessage);
                 log.info("### 处理发送邮件 [失败] {}", emailMessage.getSendId());
             }
         } catch (Throwable e) {
             log.error("### 处理发送邮件[错误] {}", emailMessage.getSendId());
-            // TODO 异步通知失败
+            // 异步通知失败
+            AsyncNotice.failNotice(emailMessage);
             // TODO 记录或通知当前错误
             // 抛出异常 Nack
             throw e;

@@ -33,7 +33,7 @@ public abstract class BaseMessage implements Serializable {
     private Long sendId;
 
     /**
-     * 异步发送时的回调接口
+     * 异步发送时的回调Url接口
      */
     @Getter
     @Setter

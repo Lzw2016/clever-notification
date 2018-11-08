@@ -7,4 +7,6 @@ package org.clever.notification.dto;
 public class PatternConstant {
 
     public static final String SysName_Pattern = "[a-zA-Z0-9\\u4e00-\\u9fa5()\\[\\]{}_-]{3,127}";
+
+    public static final String Url_Pattern = "(https?)://[-A-Za-z0-9+&@#/%?=~_|!:,.;]+[-A-Za-z0-9+&@#/%=~_|]";
 }

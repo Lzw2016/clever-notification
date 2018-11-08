@@ -3,6 +3,7 @@ package org.clever.notification.rabbit;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
+import org.clever.notification.utils.AsyncNotice;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.support.CorrelationData;
@@ -48,7 +49,13 @@ public class SenderCallBack implements RabbitTemplate.ConfirmCallback, RabbitTem
             log.info("### 消息到达交换器 -> {}", correlationData.getId());
         } else {
             log.error("### 消息不能到达交换器 -> [correlationData={}] [cause={}]", correlationData, cause);
-            // TODO 异步通知 失败
+            // 异步通知 失败
+            if (correlationData instanceof SimpleCorrelationData) {
+                SimpleCorrelationData simpleCorrelationData = (SimpleCorrelationData) correlationData;
+                if (simpleCorrelationData.getMessage() != null) {
+                    AsyncNotice.failNotice(simpleCorrelationData.getMessage());
+                }
+            }
         }
     }
 
@@ -58,7 +65,8 @@ public class SenderCallBack implements RabbitTemplate.ConfirmCallback, RabbitTem
     @Override
     public void returnedMessage(Message message, int replyCode, String replyText, String exchange, String routingKey) {
         log.error("### 消息不能到达队列 -> {}", message);
-        // TODO 异步通知失败
+        // 异步通知失败
+        AsyncNotice.failNotice(message);
     }
 
     @EqualsAndHashCode(callSuper = true)

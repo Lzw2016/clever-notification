@@ -44,6 +44,11 @@ public class GlobalConfig {
     private SnowFlakeConfig snowFlakeConfig;
 
     /**
+     * 消息SendId去重的SendId保留最大时间(单位秒，默认两小时)
+     */
+    private long distinctSendIdMaxTime = 60 * 60 * 2;
+
+    /**
      * TODO 是否启用黑名单 (数据库全局实现?)
      */
     private boolean enableBlackList = true;

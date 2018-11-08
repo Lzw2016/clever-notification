@@ -227,6 +227,7 @@ clever:
     db-password-aes-key: 636c657665122d736563757269747921
     db-password-aes-iv: f00211a5a06d5a7bade961afe47e9ad1
     sms-mock: false
+    distinct-send-id-max-time: 7200
     snow-flake-config:
       data-center-id: 0
       machine-id: 0

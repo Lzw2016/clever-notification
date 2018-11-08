@@ -1,10 +1,13 @@
 package org.clever.notification.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.clever.notification.config.GlobalConfig;
 import org.clever.notification.rabbit.producer.IDistinctSendId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * 作者： lzw<br/>
@@ -20,17 +23,24 @@ public class DistinctSendIdService implements IDistinctSendId {
     private static final String SendIdKey = "clever-notification:send-id";
 
     @Autowired
+    private GlobalConfig globalConfig;
+
+    @Autowired
     private StringRedisTemplate redisTemplate;
 
     @Override
     public boolean existsSendId(long sendId) {
-        Boolean result = redisTemplate.opsForSet().isMember(SendIdKey, String.valueOf(sendId));
-        // 使用Redis或者数据库去重 Message SendId
+        // {SendIdKey}:{sendId}
+        String key = String.format("%s:%s", SendIdKey, sendId);
+        Boolean result = redisTemplate.hasKey(key);
+        // 使用Redis去重 Message SendId
         return result != null && result;
     }
 
     @Override
     public void addSendId(long sendId) {
-        redisTemplate.opsForSet().add(SendIdKey, String.valueOf(sendId));
+        // {SendIdKey}:{sendId}
+        String key = String.format("%s:%s", SendIdKey, sendId);
+        redisTemplate.opsForValue().set(key, String.valueOf(sendId), globalConfig.getDistinctSendIdMaxTime(), TimeUnit.SECONDS);
     }
 }

@@ -4,10 +4,12 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.clever.common.model.request.BaseRequest;
+import org.clever.notification.dto.PatternConstant;
 import org.hibernate.validator.constraints.Length;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,6 +28,7 @@ public class SendEmailByContentReq extends BaseRequest {
     private boolean async = true;
 
     @ApiModelProperty("异步发送时的回调接口")
+    @Pattern(regexp = PatternConstant.Url_Pattern)
     @Length(max = 1024)
     private String asyncCallBack;
 
