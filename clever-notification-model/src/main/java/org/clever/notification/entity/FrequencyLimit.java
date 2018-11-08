@@ -30,7 +30,7 @@ public class FrequencyLimit implements Serializable {
     private Integer messageType;
 
     /**
-     * 黑名单帐号(帐号为空表示对消息类型的限制)
+     * 限速帐号(帐号为空表示对消息类型的限制)
      */
     private String account;
 
@@ -40,7 +40,7 @@ public class FrequencyLimit implements Serializable {
     private Integer enabled;
 
     /**
-     * 黑名单帐号过期时间(到期自动禁用)
+     * 限速配置过期时间(到期自动禁用)
      */
     private Date expiredTime;
 

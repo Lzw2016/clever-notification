@@ -90,9 +90,9 @@ create table frequency_limit
     id              bigint          not null        auto_increment                          comment '主键id',
     sys_name        varchar(127)    not null                                                comment '系统名称(全局使用“root”名称)',
     message_type    int(1)                                                                  comment '消息类型，1：邮件；2：短信；...(消息类型为空表示对系统的限制)',
-    account         varchar(127)                                                            comment '黑名单帐号(帐号为空表示对消息类型的限制)',
+    account         varchar(127)                                                            comment '限速帐号(帐号为空表示对消息类型的限制)',
     enabled         int(1)          not null        default 1                               comment '是否启用，0：禁用；1：启用',
-    expired_time    datetime(3)                                                             comment '黑名单帐号过期时间(到期自动禁用)',
+    expired_time    datetime(3)                                                             comment '限速配置过期时间(到期自动禁用)',
     minutes_count   int             not null        default 0                               comment '一分钟内的发送次数(小于等于0表示不限制)', 
     hours_count     int             not null        default 0                               comment '一小时内的发送次数(小于等于0表示不限制)',
     days_count      int             not null        default 0                               comment '一天内的发送次数(小于等于0表示不限制)',
@@ -115,10 +115,7 @@ create index frequency_limit_account on frequency_limit (account);
 系统短信发送帐号密钥配置
 
 
-
-扩展功能：
-1. 限制消息发送频率(分钟，小时，天，周，月)
-2.
+系统配置表(限制sysName、是否启用黑名单、是否启用发送评率限制)
 
 --------------------------------------------------------------------------------------------------------------------------*/
 
