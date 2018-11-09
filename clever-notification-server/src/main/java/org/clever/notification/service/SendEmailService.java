@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.PostConstruct;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -51,7 +52,7 @@ public class SendEmailService {
     @Autowired
     private IDistinctSendId distinctSendId;
 
-    private SpringSendMailUtils newSpringSendMailUtils(SysBindEmail sysBindEmail) {
+    private synchronized SpringSendMailUtils newSpringSendMailUtils(SysBindEmail sysBindEmail) {
         log.info("### 初始化 JavaMailSender {} -> {}", sysBindEmail.getSysName(), sysBindEmail.getAccount());
         // 创建 JavaMailSender
         JavaMailSenderImpl javaMailSender = new JavaMailSenderImpl();
@@ -70,13 +71,30 @@ public class SendEmailService {
         return new SpringSendMailUtils(javaMailSender);
     }
 
-    public void addSendMailUtils(SysBindEmail sysBindEmail) {
+    public synchronized void addSendMailUtils(SysBindEmail sysBindEmail) {
         SpringSendMailUtils springSendMailUtils = newSpringSendMailUtils(sysBindEmail);
         // 各个系统自己的帐号
         List<SpringSendMailUtils> mailUtils = SendMailUtilsMap.computeIfAbsent(sysBindEmail.getSysName(), k -> new CopyOnWriteArrayList<>());
         // mailUtils.stream().filter(springSendMailUtils1 -> springSendMailUtils.getJavaMailSender().get).findFirst()
         mailUtils.add(springSendMailUtils);
         PollingSendMailUtils.computeIfAbsent(sysBindEmail.getSysName(), k -> new AtomicInteger(0));
+    }
+
+    public synchronized void delSendMailUtils(SysBindEmail sysBindEmail) {
+        // 各个系统自己的帐号
+        List<SpringSendMailUtils> mailUtils = SendMailUtilsMap.get(sysBindEmail.getSysName());
+        if (mailUtils != null) {
+            mailUtils.stream().filter(springSendMailUtils -> {
+                if (springSendMailUtils == null || springSendMailUtils.getJavaMailSender() == null) {
+                    return false;
+                }
+                if (springSendMailUtils.getJavaMailSender() instanceof JavaMailSenderImpl) {
+                    JavaMailSenderImpl javaMailSender = (JavaMailSenderImpl) springSendMailUtils.getJavaMailSender();
+                    return Objects.equals(javaMailSender.getUsername(), sysBindEmail.getAccount());
+                }
+                return false;
+            }).findFirst().ifPresent(mailUtils::remove);
+        }
     }
 
     @PostConstruct

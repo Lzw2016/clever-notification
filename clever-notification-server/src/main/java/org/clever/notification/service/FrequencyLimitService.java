@@ -338,7 +338,7 @@ public class FrequencyLimitService implements IFrequencyLimit {
     /**
      * 增加发送频率
      */
-    @SuppressWarnings("Duplicates")
+    @SuppressWarnings({"Duplicates", "ConstantConditions"})
     private void addFrequency(RedisConnection connection, FrequencyLimitCount frequencyLimitCount, String sysName, Integer messageType, String account) {
         if (connection == null || frequencyLimitCount == null) {
             return;

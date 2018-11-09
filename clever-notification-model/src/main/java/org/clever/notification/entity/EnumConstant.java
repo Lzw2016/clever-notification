@@ -35,4 +35,14 @@ public class EnumConstant {
      * 全局系统名
      */
     public static final String RootSysName = "root";
+
+    /**
+     * 是否启用，0：禁用
+     */
+    public static final Integer Enabled_0 = 0;
+
+    /**
+     * 是否启用，1：启用
+     */
+    public static final Integer Enabled_1 = 1;
 }
