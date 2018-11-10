@@ -1,7 +1,12 @@
 package org.clever.notification.service;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.extern.slf4j.Slf4j;
 import org.clever.common.exception.BusinessException;
+import org.clever.common.utils.mapper.BeanMapper;
+import org.clever.notification.dto.request.ReceiverBlackListQueryReq;
+import org.clever.notification.dto.request.ReceiverBlackListUpdateReq;
 import org.clever.notification.entity.EnumConstant;
 import org.clever.notification.entity.ReceiverBlackList;
 import org.clever.notification.mapper.ReceiverBlackListMapper;
@@ -9,6 +14,7 @@ import org.clever.notification.model.BaseMessage;
 import org.clever.notification.model.EmailMessage;
 import org.clever.notification.rabbit.producer.IExcludeBlackList;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -21,6 +27,7 @@ import java.util.*;
  * 作者： lzw<br/>
  * 创建时间：2018-11-06 18:16 <br/>
  */
+@SuppressWarnings("Duplicates")
 @Service
 @Slf4j
 public class ReceiverBlackListService implements IExcludeBlackList {
@@ -67,14 +74,7 @@ public class ReceiverBlackListService implements IExcludeBlackList {
         // 删除当前不存在的数据
         redisTemplate.executePipelined((RedisCallback<Void>) connection -> {
             for (ReceiverBlackList receiverBlackList : receiverBlackLists) {
-                // {KeyPrefix}:{sys_name}:{message_type}:{account}
-                String key = String.format(
-                        "%s:%s:%s:%s",
-                        KeyPrefix,
-                        receiverBlackList.getSysName(),
-                        receiverBlackList.getMessageType(),
-                        receiverBlackList.getAccount()
-                );
+                String key = getConfigKey(receiverBlackList);
                 connection.sAdd(blackListSetTmp.getBytes(), key.getBytes());
             }
             return null;
@@ -88,28 +88,36 @@ public class ReceiverBlackListService implements IExcludeBlackList {
         // 插入所有的黑名单数据
         redisTemplate.executePipelined((RedisCallback<Void>) connection -> {
             for (ReceiverBlackList receiverBlackList : receiverBlackLists) {
-                // {KeyPrefix}:{sys_name}:{message_type}:{account}
-                String key = String.format(
-                        "%s:%s:%s:%s",
-                        KeyPrefix,
-                        receiverBlackList.getSysName(),
-                        receiverBlackList.getMessageType(),
-                        receiverBlackList.getAccount()
-                );
-                if (receiverBlackList.getExpiredTime() != null) {
-                    long timeout = (receiverBlackList.getExpiredTime().getTime() - System.currentTimeMillis()) / 1000;
-                    if (timeout > 0) {
-                        // 设置数据过期时间
-                        connection.setEx(key.getBytes(), timeout, receiverBlackList.getAccount().getBytes());
-                    }
-                } else {
-                    // 不设置数据过期时间
-                    connection.setNX(key.getBytes(), receiverBlackList.getAccount().getBytes());
-                }
+                addConfig(connection, receiverBlackList);
             }
             return null;
         });
         log.info("### 加载黑名单数量:{} | 删除的黑名单数量：{} | 禁用黑名单数量:{}", receiverBlackLists.size(), keySet.size(), enabledCount);
+    }
+
+    private String getConfigKey(ReceiverBlackList receiverBlackList) {
+        // {KeyPrefix}:{sys_name}:{message_type}:{account}
+        return String.format(
+                "%s:%s:%s:%s",
+                KeyPrefix,
+                receiverBlackList.getSysName(),
+                receiverBlackList.getMessageType(),
+                receiverBlackList.getAccount()
+        );
+    }
+
+    private void addConfig(RedisConnection connection, ReceiverBlackList receiverBlackList) {
+        String key = getConfigKey(receiverBlackList);
+        if (receiverBlackList.getExpiredTime() != null) {
+            long timeout = (receiverBlackList.getExpiredTime().getTime() - System.currentTimeMillis()) / 1000;
+            if (timeout > 0) {
+                // 设置数据过期时间
+                connection.setEx(key.getBytes(), timeout, receiverBlackList.getAccount().getBytes());
+            }
+        } else {
+            // 不设置数据过期时间
+            connection.set(key.getBytes(), receiverBlackList.getAccount().getBytes());
+        }
     }
 
     /**
@@ -165,5 +173,74 @@ public class ReceiverBlackListService implements IExcludeBlackList {
             throw new BusinessException("过滤黑名单之后没有消息接收者");
         }
         return emailMessage;
+    }
+
+    public IPage<ReceiverBlackList> findByPage(ReceiverBlackListQueryReq queryReq) {
+        Page<ReceiverBlackList> page = new Page<>(queryReq.getPageNo(), queryReq.getPageSize());
+        page.setRecords(receiverBlackListMapper.findByPage(queryReq, page));
+        return page;
+    }
+
+    @Transactional
+    public ReceiverBlackList addReceiverBlackList(ReceiverBlackList receiverBlackList) {
+        // 校验黑名单是否存在
+        int count = receiverBlackListMapper.exists(receiverBlackList.getSysName(), receiverBlackList.getMessageType(), receiverBlackList.getAccount());
+        if (count > 0) {
+            throw new BusinessException("黑名单配置已经存在");
+        }
+        // 保存配置
+        receiverBlackListMapper.insert(receiverBlackList);
+        receiverBlackList = receiverBlackListMapper.selectById(receiverBlackList.getId());
+        // 加载配置
+        final ReceiverBlackList tmp = receiverBlackList;
+        redisTemplate.executePipelined((RedisCallback<Void>) connection -> {
+            addConfig(connection, tmp);
+            return null;
+        });
+        return receiverBlackList;
+    }
+
+    @Transactional
+    public ReceiverBlackList updateReceiverBlackList(Long id, ReceiverBlackListUpdateReq updateReq) {
+        ReceiverBlackList oldReceiverBlackList = receiverBlackListMapper.selectById(id);
+        if (oldReceiverBlackList == null) {
+            throw new BusinessException("更新数据不存在");
+        }
+        // 更新配置
+        ReceiverBlackList newReceiverBlackList = BeanMapper.mapper(updateReq, ReceiverBlackList.class);
+        newReceiverBlackList.setId(oldReceiverBlackList.getId());
+        receiverBlackListMapper.updateById(newReceiverBlackList);
+        newReceiverBlackList = receiverBlackListMapper.selectById(newReceiverBlackList.getId());
+        // 加载配置
+        String oldKey = getConfigKey(oldReceiverBlackList);
+        String newKey = getConfigKey(newReceiverBlackList);
+        final ReceiverBlackList tmp = newReceiverBlackList;
+        if (Objects.equals(oldKey, newKey)) {
+            redisTemplate.executePipelined((RedisCallback<Void>) connection -> {
+                addConfig(connection, tmp);
+                return null;
+            });
+        } else {
+            redisTemplate.executePipelined((RedisCallback<Void>) connection -> {
+                addConfig(connection, tmp);
+                connection.del(oldKey.getBytes());
+                return null;
+            });
+        }
+        return newReceiverBlackList;
+    }
+
+    @Transactional
+    public ReceiverBlackList delReceiverBlackList(Long id) {
+        ReceiverBlackList receiverBlackList = receiverBlackListMapper.selectById(id);
+        if (receiverBlackList == null) {
+            throw new BusinessException("删除数据不存在");
+        }
+        // 删除配置
+        receiverBlackListMapper.deleteById(receiverBlackList.getId());
+        // 卸载配置
+        String key = getConfigKey(receiverBlackList);
+        redisTemplate.delete(key);
+        return receiverBlackList;
     }
 }

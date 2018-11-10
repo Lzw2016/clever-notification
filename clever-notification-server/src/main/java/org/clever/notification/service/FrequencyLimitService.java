@@ -117,7 +117,9 @@ public class FrequencyLimitService implements IFrequencyLimit {
             return null;
         });
         // 统一删除错误配置
-        frequencyLimitMapper.deleteBatchIds(errorFrequencyLimit);
+        if (errorFrequencyLimit.size() > 0) {
+            frequencyLimitMapper.deleteBatchIds(errorFrequencyLimit);
+        }
         log.info("### 加载发送频率配置数量:{} | 删除的发送频率配置数量：{} | 禁用发送频率配置数量:{}", frequencyLimits.size(), keySet.size(), enabledCount);
     }
 
