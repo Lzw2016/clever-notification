@@ -8,7 +8,6 @@ import org.clever.common.utils.javamail.SpringSendMailUtils;
 import org.clever.notification.entity.EnumConstant;
 import org.clever.notification.entity.MessageSendLog;
 import org.clever.notification.entity.SysBindEmail;
-import org.clever.notification.mapper.MessageSendLogMapper;
 import org.clever.notification.mapper.SysBindEmailMapper;
 import org.clever.notification.model.EmailMessage;
 import org.clever.notification.rabbit.producer.IDistinctSendId;
@@ -46,7 +45,7 @@ public class SendEmailService {
     @Autowired
     private SysBindEmailMapper sysBindEmailMapper;
     @Autowired
-    private MessageSendLogMapper messageSendLogMapper;
+    private MessageSendLogService messageSendLogService;
     @Autowired
     private CryptoService cryptoService;
     @Autowired
@@ -71,7 +70,7 @@ public class SendEmailService {
         return new SpringSendMailUtils(javaMailSender);
     }
 
-    public synchronized void addSendMailUtils(SysBindEmail sysBindEmail) {
+    synchronized void addSendMailUtils(SysBindEmail sysBindEmail) {
         SpringSendMailUtils springSendMailUtils = newSpringSendMailUtils(sysBindEmail);
         // 各个系统自己的帐号
         List<SpringSendMailUtils> mailUtils = SendMailUtilsMap.computeIfAbsent(sysBindEmail.getSysName(), k -> new CopyOnWriteArrayList<>());
@@ -80,7 +79,7 @@ public class SendEmailService {
         PollingSendMailUtils.computeIfAbsent(sysBindEmail.getSysName(), k -> new AtomicInteger(0));
     }
 
-    public synchronized void delSendMailUtils(SysBindEmail sysBindEmail) {
+    synchronized void delSendMailUtils(SysBindEmail sysBindEmail) {
         // 各个系统自己的帐号
         List<SpringSendMailUtils> mailUtils = SendMailUtilsMap.get(sysBindEmail.getSysName());
         if (mailUtils != null) {
@@ -148,14 +147,14 @@ public class SendEmailService {
     }
 
     /**
-     * 发送邮件 TODO 发送邮件需要单独拆开(时间过长事务过长)
+     * 发送邮件
      */
     @Transactional
     public boolean sendEmail(EmailMessage emailMessage) {
         // 记录发送日志
         MessageSendLog messageSendLog = emailMessage.createMessageSendLog();
         messageSendLog.setSendTime(new Date());
-        messageSendLogMapper.insert(messageSendLog);
+        messageSendLogService.addMessageSendLog(messageSendLog);
         try {
             SpringSendMailUtils springSendMailUtils = getSendMailUtils(emailMessage.getSysName());
             springSendMailUtils.sendMimeMessage(
@@ -178,8 +177,7 @@ public class SendEmailService {
             update.setSendState(EnumConstant.SendState_2);
             update.setFailReason(StringUtils.mid(e.getMessage(), 0, 511));
             update.setUseTime(new Date().getTime() - messageSendLog.getSendTime().getTime());
-            update.setUpdateAt(new Date());
-            messageSendLogMapper.updateById(update);
+            messageSendLogService.updateMessageSendLog(update);
             return false;
         }
         // 更新发送日志 - 成功
@@ -187,8 +185,7 @@ public class SendEmailService {
         update.setId(messageSendLog.getId());
         update.setSendState(EnumConstant.SendState_3);
         update.setUseTime(new Date().getTime() - messageSendLog.getSendTime().getTime());
-        update.setUpdateAt(new Date());
-        messageSendLogMapper.updateById(update);
+        messageSendLogService.updateMessageSendLog(update);
         return true;
     }
 }
