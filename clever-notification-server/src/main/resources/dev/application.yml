@@ -231,5 +231,3 @@ clever:
     snow-flake-config:
       data-center-id: 0
       machine-id: 0
-    black-list-max-count: 10000
-    frequency-limit-max-count: 5000

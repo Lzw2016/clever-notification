@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<!--suppress SqlDialectInspection -->
+<mapper namespace="org.clever.notification.mapper.ServiceSysMapper">
+    <select id="getBySysName" resultType="org.clever.notification.entity.ServiceSys">
+        select * from service_sys where sys_name=#{sysName}
+    </select>
+
+    <select id="findByPage" resultType="org.clever.notification.entity.ServiceSys">
+        select
+        *
+        from service_sys
+        <where>
+            <if test="query.sysName!=null and query.sysName!=''">
+                and sys_name=#{query.sysName}
+            </if>
+            <if test="query.enabled!=null">
+                and enabled=#{query.enabled}
+            </if>
+            <if test="query.enableBlackList!=null">
+                and enable_black_list=#{query.enableBlackList}
+            </if>
+            <if test="query.enableFrequencyLimit!=null">
+                and enable_frequency_limit=#{query.enableFrequencyLimit}
+            </if>
+        </where>
+        order by sys_name
+    </select>
+</mapper>
