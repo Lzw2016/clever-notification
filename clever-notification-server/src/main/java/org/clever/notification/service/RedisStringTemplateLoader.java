@@ -11,6 +11,8 @@ import org.springframework.stereotype.Component;
 
 import java.io.Reader;
 import java.io.StringReader;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Locale;
 
 /**
@@ -25,10 +27,10 @@ public class RedisStringTemplateLoader implements TemplateLoader {
     /**
      * key前缀
      */
-    private static final String KeyPrefix = "clever-notification:message-template";
+    public static final String KeyPrefix = "clever-notification:message-template";
 
     @Autowired
-    private RedisTemplate<Object, Object> redisTemplate;
+    private RedisTemplate<String, Object> redisTemplate;
     @Autowired
     private Configuration configuration;
 
@@ -41,6 +43,13 @@ public class RedisStringTemplateLoader implements TemplateLoader {
                 String.format("%s:%s", KeyPrefix, name),
                 new RedisStringTemplateLoader.StringTemplateSource(name, templateContent, lastModified)
         );
+    }
+
+    public boolean removeTemplate(Collection<String> names) {
+        Collection<String> keyTmp = new HashSet<>(names.size());
+        names.forEach(s -> keyTmp.add(String.format("%s:%s", KeyPrefix, s)));
+        Long count = redisTemplate.delete(keyTmp);
+        return count != null && count > 0;
     }
 
     public boolean removeTemplate(String name) {

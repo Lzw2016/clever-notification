@@ -20,7 +20,7 @@ public class LoadFrequencyLimit {
     /**
      * 定时加载黑名单(直接修改数据库或集群时有用)
      */
-    @Scheduled(cron = "0/5 * * * * ?") // 测试
+    @Scheduled(cron = "0/30 * * * * ?") // 测试
 //    @Scheduled(cron = "0 0/30 * * * ?")
     public void loadBlackList() {
         frequencyLimitService.load();

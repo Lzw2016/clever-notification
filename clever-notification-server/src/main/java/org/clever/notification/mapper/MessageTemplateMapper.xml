@@ -5,4 +5,31 @@
     <select id="findAllEnabled" resultType="org.clever.notification.entity.MessageTemplate">
         select * from message_template where enabled=1
     </select>
+
+    <select id="findByPage" resultType="org.clever.notification.entity.MessageTemplate">
+        select
+        *
+        from
+        message_template
+        <where>
+            <if test="query.name!=null and query.name!=''">
+                and name like concat('%', #{query.name}, '%')
+            </if>
+            <if test="query.content!=null and query.content!=''">
+                and content like concat('%', #{query.content}, '%')
+            </if>
+            <if test="query.enabled!=null">
+                and enabled=#{query.enabled}
+            </if>
+        </where>
+        order by name
+    </select>
+
+    <select id="exists" resultType="int">
+        select count(1) from message_template where name=#{name}
+    </select>
+
+    <select id="getByName" resultType="org.clever.notification.entity.MessageTemplate">
+        select * from message_template where name=#{name}
+    </select>
 </mapper>
