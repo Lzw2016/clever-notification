@@ -2,7 +2,7 @@
 ### Web服务器配置
 ###################################################################################
 server:
-  port: 28080
+  port: 28081
   servlet:
     context-path: /
 
@@ -20,7 +20,7 @@ logging:
 ###################################################################################
 spring:
   profiles.active: dev
-  application.name: clever-notification-server
+  application.name: clever-notification-demo
   aop.proxy-target-class: true
 
   servlet: #------------------------------------------------------------ 文件上传配置
@@ -83,13 +83,28 @@ management:
     prometheus:
       enabled: true
   metrics:
+    enable:
+      root: true
     export:
       prometheus:
         enabled: true
         descriptions: true
-        step: 30s
+        step: 5s
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      percentiles:
+        http.server.requests: 0.5, 0.75, 0.9, 0.95, 0.99
+      sla:
+        http.server.requests: 10ms, 50ms, 100ms, 200ms, 500ms, 1s, 2s, 3s, 4s, 5s, 10s, 15s, 20s, 30s, 50s
 
-
+###################################################################################
+### Feign配置
+###################################################################################
+# CommonClientConfigKey 实现
+clever-notification-server:
+  ribbon:
+    listOfServers: '127.0.0.1:28080'
 
 
 
