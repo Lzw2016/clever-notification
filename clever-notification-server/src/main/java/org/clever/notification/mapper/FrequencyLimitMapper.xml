@@ -9,4 +9,35 @@
     <select id="findAllEnabled" resultType="org.clever.notification.entity.FrequencyLimit">
         select * from frequency_limit where enabled=1 and (expired_time is null or expired_time>now())
     </select>
+
+    <select id="findByPage" resultType="org.clever.notification.entity.FrequencyLimit">
+        select
+        *
+        from frequency_limit
+        <where>
+            <if test="query.sysName!=null and query.sysName!=''">
+                and sys_name=#{query.sysName}
+            </if>
+            <if test="query.messageType!=null">
+                and message_type=#{query.messageType}
+            </if>
+            <if test="query.account!=null and query.account!=''">
+                and account=#{query.account}
+            </if>
+            <if test="query.enabled!=null">
+                and enabled=#{query.enabled}
+            </if>
+            <if test="query.expiredTimeStart!=null">
+                and expired_time>=#{query.expiredTimeStart}
+            </if>
+            <if test="query.expiredTimeEnd!=null">
+                <![CDATA[ and expired_time<=#{query.expiredTimeEnd} ]]>
+            </if>
+        </where>
+        order by sys_name, message_type, account
+    </select>
+
+    <select id="exists" resultType="int">
+        select count(1) from frequency_limit where sys_name=#{sysName} and message_type=#{messageType} and account=#{account}
+    </select>
 </mapper>
