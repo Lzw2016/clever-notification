@@ -1,0 +1,8 @@
+{
+  "properties": [
+    {
+      "name": "clever-notification-server.ribbon.listOfServers",
+      "type": "java.lang.String",
+      "description": "Description for clever-notification-server.ribbon.listOfServers."
+  }
+] }

@@ -1,6 +1,9 @@
 package org.clever.notification.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import org.apache.ibatis.annotations.Param;
+import org.clever.notification.dto.request.FrequencyLimitQueryReq;
 import org.clever.notification.entity.FrequencyLimit;
 
 import java.util.List;
@@ -14,4 +17,8 @@ public interface FrequencyLimitMapper extends BaseMapper<FrequencyLimit> {
     int updateEnabledByExpiredTime();
 
     List<FrequencyLimit> findAllEnabled();
+
+    List<FrequencyLimit> findByPage(@Param("query") FrequencyLimitQueryReq query, IPage page);
+
+    int exists(@Param("sysName") String sysName, @Param("messageType") Integer messageType, @Param("account") String account);
 }

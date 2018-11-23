@@ -18,5 +18,7 @@ public interface SysBindEmailMapper extends BaseMapper<SysBindEmail> {
 
     int existsAccount(@Param("account") String account);
 
+    SysBindEmail getByAccount(@Param("account") String account);
+
     List<SysBindEmail> findByPage(@Param("query") SysBindEmailQueryReq query, IPage page);
 }

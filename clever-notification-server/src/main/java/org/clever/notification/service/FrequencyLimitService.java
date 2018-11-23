@@ -1,12 +1,17 @@
 package org.clever.notification.service;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.clever.common.exception.BusinessException;
+import org.clever.common.utils.mapper.BeanMapper;
 import org.clever.common.utils.mapper.JacksonMapper;
+import org.clever.notification.dto.request.FrequencyLimitQueryReq;
+import org.clever.notification.dto.request.FrequencyLimitUpdateReq;
 import org.clever.notification.entity.EnumConstant;
 import org.clever.notification.entity.FrequencyLimit;
 import org.clever.notification.mapper.FrequencyLimitMapper;
@@ -22,10 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * 作者： lzw<br/>
@@ -85,13 +87,13 @@ public class FrequencyLimitService implements IFrequencyLimit {
         // 查询所有黑名单
         int enabledCount = frequencyLimitMapper.updateEnabledByExpiredTime();
         List<FrequencyLimit> frequencyLimits = frequencyLimitMapper.findAllEnabled();
+        List<Long> errorFrequencyLimit = new ArrayList<>();
         // 删除当前不存在的数据
         redisTemplate.executePipelined((RedisCallback<Void>) connection -> {
             for (FrequencyLimit frequencyLimit : frequencyLimits) {
                 String key = getConfigKey(frequencyLimit);
                 if (StringUtils.isBlank(key)) {
-                    frequencyLimitMapper.deleteById(frequencyLimit.getId());
-                    log.warn("### 删除无效配置 {}", frequencyLimit);
+                    errorFrequencyLimit.add(frequencyLimit.getId());
                     continue;
                 }
                 connection.sAdd(frequencyLimitSetTmp.getBytes(), key.getBytes());
@@ -108,29 +110,22 @@ public class FrequencyLimitService implements IFrequencyLimit {
         // 插入所有的黑名单数据
         redisTemplate.executePipelined((RedisCallback<Void>) connection -> {
             for (FrequencyLimit frequencyLimit : frequencyLimits) {
-                String key = getConfigKey(frequencyLimit);
-                if (StringUtils.isBlank(key)) {
-                    frequencyLimitMapper.deleteById(frequencyLimit.getId());
-                    log.warn("### 删除无效配置 {}", frequencyLimit);
-                    continue;
-                }
-                String value = JacksonMapper.nonEmptyMapper().toJson(new FrequencyLimitCount(frequencyLimit));
-                if (frequencyLimit.getExpiredTime() != null) {
-                    long timeout = (frequencyLimit.getExpiredTime().getTime() - System.currentTimeMillis()) / 1000;
-                    if (timeout > 0) {
-                        // 设置数据过期时间
-                        connection.setEx(key.getBytes(), timeout, value.getBytes());
-                    }
-                } else {
-                    // 不设置数据过期时间
-                    connection.set(key.getBytes(), value.getBytes());
+                if (!addConfig(connection, frequencyLimit)) {
+                    errorFrequencyLimit.add(frequencyLimit.getId());
                 }
             }
             return null;
         });
+        // 统一删除错误配置
+        if (errorFrequencyLimit.size() > 0) {
+            frequencyLimitMapper.deleteBatchIds(errorFrequencyLimit);
+        }
         log.info("### 加载发送频率配置数量:{} | 删除的发送频率配置数量：{} | 禁用发送频率配置数量:{}", frequencyLimits.size(), keySet.size(), enabledCount);
     }
 
+    /**
+     * 生成Redis配置Key，配置错误返回null
+     */
     private String getConfigKey(FrequencyLimit frequencyLimit) {
         // {ConfigKeyPrefix}:{sys_name}:{message_type}:{account}
         // {ConfigKeyPrefix}:{sys_name}:{message_type}
@@ -147,6 +142,28 @@ public class FrequencyLimitService implements IFrequencyLimit {
         }
         return key;
 
+    }
+
+    /**
+     * 在Redis中加载配置，true:加入成功，false:加入失败
+     */
+    private boolean addConfig(RedisConnection connection, FrequencyLimit frequencyLimit) {
+        String key = getConfigKey(frequencyLimit);
+        if (StringUtils.isBlank(key)) {
+            return false;
+        }
+        String value = JacksonMapper.nonEmptyMapper().toJson(new FrequencyLimitCount(frequencyLimit));
+        if (frequencyLimit.getExpiredTime() != null) {
+            long timeout = (frequencyLimit.getExpiredTime().getTime() - System.currentTimeMillis()) / 1000;
+            if (timeout > 0) {
+                // 设置数据过期时间
+                connection.setEx(key.getBytes(), timeout, value.getBytes());
+            }
+        } else {
+            // 不设置数据过期时间
+            connection.set(key.getBytes(), value.getBytes());
+        }
+        return true;
     }
 
     @Override
@@ -338,7 +355,7 @@ public class FrequencyLimitService implements IFrequencyLimit {
     /**
      * 增加发送频率
      */
-    @SuppressWarnings("Duplicates")
+    @SuppressWarnings({"Duplicates", "ConstantConditions"})
     private void addFrequency(RedisConnection connection, FrequencyLimitCount frequencyLimitCount, String sysName, Integer messageType, String account) {
         if (connection == null || frequencyLimitCount == null) {
             return;
@@ -453,5 +470,80 @@ public class FrequencyLimitService implements IFrequencyLimit {
                 monthsCount = frequencyLimitCount.monthsCount;
             }
         }
+    }
+
+    public IPage<FrequencyLimit> findByPage(FrequencyLimitQueryReq queryReq) {
+        Page<FrequencyLimit> page = new Page<>(queryReq.getPageNo(), queryReq.getPageSize());
+        page.setRecords(frequencyLimitMapper.findByPage(queryReq, page));
+        return page;
+    }
+
+    @Transactional
+    public FrequencyLimit addFrequencyLimit(FrequencyLimit frequencyLimit) {
+        // 校验配置 - 消息类型为空，限速帐号存在
+        if (frequencyLimit.getMessageType() == null && StringUtils.isNotBlank(frequencyLimit.getAccount())) {
+            throw new BusinessException("限速配置错误");
+        }
+        // 校验重复配置
+        int count = frequencyLimitMapper.exists(frequencyLimit.getSysName(), frequencyLimit.getMessageType(), frequencyLimit.getAccount());
+        if (count > 0) {
+            throw new BusinessException("限速配置重复");
+        }
+        // 新增配置
+        frequencyLimitMapper.insert(frequencyLimit);
+        frequencyLimit = frequencyLimitMapper.selectById(frequencyLimit.getId());
+        // 加载配置
+        final FrequencyLimit tmp = frequencyLimit;
+        redisTemplate.executePipelined((RedisCallback<Void>) connection -> {
+            String key = getConfigKey(tmp);
+            connection.sAdd(frequencyLimitSet.getBytes(), key.getBytes());
+            addConfig(connection, tmp);
+            return null;
+        });
+        return frequencyLimit;
+    }
+
+    @Transactional
+    public FrequencyLimit updateFrequencyLimit(Long id, FrequencyLimitUpdateReq updateReq) {
+        FrequencyLimit oldFrequencyLimit = frequencyLimitMapper.selectById(id);
+        if (oldFrequencyLimit == null) {
+            throw new BusinessException("配置不存在");
+        }
+        // 更新数据
+        FrequencyLimit newFrequencyLimit = BeanMapper.mapper(updateReq, FrequencyLimit.class);
+        newFrequencyLimit.setId(oldFrequencyLimit.getId());
+        frequencyLimitMapper.updateById(newFrequencyLimit);
+        newFrequencyLimit = frequencyLimitMapper.selectById(newFrequencyLimit.getId());
+        // 加载配置
+        String oldKey = getConfigKey(oldFrequencyLimit);
+        String newKey = getConfigKey(newFrequencyLimit);
+        final FrequencyLimit tmp = newFrequencyLimit;
+        if (Objects.equals(oldKey, newKey)) {
+            redisTemplate.executePipelined((RedisCallback<Void>) connection -> {
+                addConfig(connection, tmp);
+                return null;
+            });
+        } else {
+            redisTemplate.executePipelined((RedisCallback<Void>) connection -> {
+                addConfig(connection, tmp);
+                connection.del(oldKey.getBytes());
+                return null;
+            });
+        }
+        return newFrequencyLimit;
+    }
+
+    @Transactional
+    public FrequencyLimit delFrequencyLimit(Long id) {
+        FrequencyLimit frequencyLimit = frequencyLimitMapper.selectById(id);
+        if (frequencyLimit == null) {
+            throw new BusinessException("配置不存在");
+        }
+        // 删除配置
+        frequencyLimitMapper.deleteById(id);
+        // 卸载配置
+        String key = getConfigKey(frequencyLimit);
+        redisTemplate.delete(key);
+        return frequencyLimit;
     }
 }

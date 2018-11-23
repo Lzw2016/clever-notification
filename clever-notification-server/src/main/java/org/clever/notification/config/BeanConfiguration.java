@@ -7,17 +7,15 @@ import com.baomidou.mybatisplus.extension.plugins.SqlExplainInterceptor;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.clever.common.utils.SnowFlake;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
-import org.springframework.boot.actuate.autoconfigure.metrics.MeterRegistryCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 /**
@@ -28,11 +26,6 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 @Configuration
 @Slf4j
 public class BeanConfiguration {
-
-    @Bean
-    protected MeterRegistryCustomizer<MeterRegistry> metricsCommonTags() {
-        return registry -> registry.config().commonTags("application", "clever-notification-server");
-    }
 
     /**
      * 分页插件
@@ -110,19 +103,22 @@ public class BeanConfiguration {
     }
 
     @Bean("redisTemplate")
-    public RedisTemplate<Object, Object> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
-        RedisTemplate<Object, Object> template = new RedisTemplate<>();
+    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
+        RedisTemplate<String, Object> template = new RedisTemplate<>();
         template.setConnectionFactory(redisConnectionFactory);
-        // 使用Jackson2JsonRedisSerialize 替换默认序列化
-        Jackson2JsonRedisSerializer<Object> jackson2JsonRedisSerializer = new Jackson2JsonRedisSerializer<>(Object.class);
+        // 使用 GenericJackson2JsonRedisSerializer 替换默认序列化
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
         objectMapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
-        jackson2JsonRedisSerializer.setObjectMapper(objectMapper);
         // 设置value的序列化规则和 key的序列化规则
         template.setKeySerializer(new StringRedisSerializer());
-        template.setValueSerializer(jackson2JsonRedisSerializer);
+        template.setValueSerializer(new GenericJackson2JsonRedisSerializer(objectMapper));
         template.afterPropertiesSet();
         return template;
     }
+
+//    @Bean("redisTemplate")
+//    public RedisTemplate<Object, Object> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
+//
+//    }
 }

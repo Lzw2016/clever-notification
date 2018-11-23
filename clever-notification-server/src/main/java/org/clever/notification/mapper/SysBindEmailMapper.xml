@@ -10,6 +10,10 @@
         select count(1) from sys_bind_email where account=#{account}
     </select>
 
+    <select id="getByAccount" resultType="org.clever.notification.entity.SysBindEmail">
+        select * from sys_bind_email where account=#{account}
+    </select>
+
     <select id="findByPage" resultType="org.clever.notification.entity.SysBindEmail">
         select
           id,

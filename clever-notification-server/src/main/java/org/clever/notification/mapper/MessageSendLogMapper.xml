@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<!--suppress SqlDialectInspection -->
+<mapper namespace="org.clever.notification.mapper.MessageSendLogMapper">
+    <select id="findByPage" resultType="org.clever.notification.entity.MessageSendLog">
+        select
+        *
+        from message_send_log
+        <where>
+            <if test="query.sendId!=null">
+                and send_id=#{query.sendId}
+            </if>
+            <if test="query.sysName!=null and query.sysName!=''">
+                and sys_name=#{query.sysName}
+            </if>
+            <if test="query.messageType!=null">
+                and message_type=#{query.messageType}
+            </if>
+            <if test="query.sendState!=null">
+                and send_state=#{query.sendState}
+            </if>
+            <if test="query.sendTimeStart!=null">
+                and send_time>=#{query.sendTimeStart}
+            </if>
+            <if test="query.sendTimeEnd!=null">
+                <![CDATA[ and send_time<=#{query.sendTimeEnd} ]]>
+            </if>
+            <if test="query.useTimeMin!=null">
+                and use_time>=#{query.useTimeMin}
+            </if>
+            <if test="query.useTimeMax!=null">
+                <![CDATA[ and use_time<=#{query.useTimeMax} ]]>
+            </if>
+        </where>
+        order by send_id DESC
+    </select>
+</mapper>
