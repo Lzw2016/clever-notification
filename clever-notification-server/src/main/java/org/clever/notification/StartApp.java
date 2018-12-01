@@ -1,7 +1,6 @@
 package org.clever.notification;
 
 import lombok.extern.slf4j.Slf4j;
-import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.amqp.rabbit.annotation.EnableRabbit;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -16,13 +15,13 @@ import java.util.TimeZone;
  * 应用启动类
  * Created by lzw on 2017/2/25.
  */
-@Slf4j
 @EnableScheduling
 @EnableRabbit
 @EnableDiscoveryClient
 @EnableTransactionManagement
-@MapperScan("org.clever.notification.mapper")
+//@MapperScan("org.clever.notification.mapper")
 @SpringBootApplication(scanBasePackages = {"org.clever"})
+@Slf4j
 public class StartApp {
     public static void main(String[] args) {
         TimeZone.setDefault(TimeZone.getTimeZone("GMT+8"));
