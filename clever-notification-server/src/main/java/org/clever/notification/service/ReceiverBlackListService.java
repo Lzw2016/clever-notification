@@ -12,7 +12,7 @@ import org.clever.notification.entity.ReceiverBlackList;
 import org.clever.notification.mapper.ReceiverBlackListMapper;
 import org.clever.notification.model.BaseMessage;
 import org.clever.notification.model.EmailMessage;
-import org.clever.notification.rabbit.producer.IExcludeBlackList;
+import org.clever.notification.send.IExcludeBlackList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.RedisCallback;

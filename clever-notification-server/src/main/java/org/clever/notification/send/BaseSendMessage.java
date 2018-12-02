@@ -1,4 +1,4 @@
-package org.clever.notification.rabbit.producer;
+package org.clever.notification.send;
 
 import org.clever.notification.model.BaseMessage;
 

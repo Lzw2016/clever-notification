@@ -1,26 +1,34 @@
-package org.clever.notification.rabbit.consumer;
+package org.clever.notification.send.rabbit.consumer;
 
+import com.rabbitmq.client.Channel;
 import lombok.extern.slf4j.Slf4j;
-import org.clever.notification.config.RabbitBeanConfig;
 import org.clever.notification.model.EmailMessage;
-import org.clever.notification.rabbit.producer.IDistinctSendId;
-import org.clever.notification.rabbit.producer.IExcludeBlackList;
-import org.clever.notification.rabbit.producer.IFrequencyLimit;
+import org.clever.notification.send.IDistinctSendId;
+import org.clever.notification.send.IExcludeBlackList;
+import org.clever.notification.send.IFrequencyLimit;
+import org.clever.notification.send.rabbit.RabbitConfig;
+import org.clever.notification.send.rabbit.RetryConsumer;
 import org.clever.notification.service.SendEmailService;
 import org.clever.notification.utils.AsyncNotice;
 import org.springframework.amqp.rabbit.annotation.RabbitHandler;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.handler.annotation.Header;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
+
+import java.io.IOException;
 
 /**
  * 作者： lzw<br/>
  * 创建时间：2018-10-29 18:14 <br/>
  */
-@RabbitListener(queues = {RabbitBeanConfig.EmailMessageQueue})
+@RabbitListener(queues = {"notification-email"})
 @Component
 @Slf4j
-public class SendEmailNotification {
+public class SendEmailNotification extends RetryConsumer<EmailMessage> {
 
     @Autowired
     private SendEmailService sendEmailService;
@@ -31,13 +39,31 @@ public class SendEmailNotification {
     @Autowired
     private IDistinctSendId distinctSendId;
 
+    public SendEmailNotification(RabbitTemplate rabbitTemplate) {
+        super(rabbitTemplate);
+        // super(rabbitTemplate, RetryStrategy.DEFAULT_5_SECOND);
+    }
+
     @RabbitHandler
-    public void send(EmailMessage emailMessage) {
+    public void onMessage(
+            @Payload EmailMessage emailMessage,
+            @Header(AmqpHeaders.DELIVERY_TAG) long deliveryTag,
+            @Header(name = RetryCount, defaultValue = "0") int retryCount,
+            Channel channel) {
+        try {
+            super.onMessage(emailMessage, RabbitConfig.Email, deliveryTag, retryCount, channel);
+        } catch (IOException e) {
+            log.info("### 消息处理失败");
+        }
+    }
+
+    @Override
+    protected Action handle(EmailMessage emailMessage) {
         log.info("### 处理发送邮件 {} 通知地址 -> {}", emailMessage.getSendId(), emailMessage.getAsyncCallBack());
         try {
             // 去重 Message SendId
             if (distinctSendId.existsSendId(emailMessage.getSendId())) {
-                return;
+                return Action.REJECT;
             }
             // 黑名单限制
             emailMessage = excludeBlackList.removeBlackList(emailMessage);
@@ -60,5 +86,6 @@ public class SendEmailNotification {
             // 抛出异常 Nack
             throw e;
         }
+        return Action.ACCEPT;
     }
 }

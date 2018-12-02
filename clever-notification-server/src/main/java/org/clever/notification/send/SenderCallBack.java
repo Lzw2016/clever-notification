@@ -1,4 +1,4 @@
-package org.clever.notification.rabbit;
+package org.clever.notification.send;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;

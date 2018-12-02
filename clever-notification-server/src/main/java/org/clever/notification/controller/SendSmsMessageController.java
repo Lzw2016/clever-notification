@@ -6,7 +6,7 @@ import org.clever.common.utils.mapper.BeanMapper;
 import org.clever.notification.dto.request.SendSmsByTemplateReq;
 import org.clever.notification.dto.response.SendSmsRes;
 import org.clever.notification.model.SmsMessage;
-import org.clever.notification.rabbit.producer.impl.SendSmsMessage;
+import org.clever.notification.send.rabbit.producer.SendSmsMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;

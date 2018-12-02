@@ -2,7 +2,7 @@ package org.clever.notification.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.clever.notification.config.GlobalConfig;
-import org.clever.notification.rabbit.producer.IDistinctSendId;
+import org.clever.notification.send.IDistinctSendId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;

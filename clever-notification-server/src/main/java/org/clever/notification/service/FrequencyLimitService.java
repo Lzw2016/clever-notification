@@ -17,7 +17,7 @@ import org.clever.notification.entity.FrequencyLimit;
 import org.clever.notification.mapper.FrequencyLimitMapper;
 import org.clever.notification.model.BaseMessage;
 import org.clever.notification.model.EmailMessage;
-import org.clever.notification.rabbit.producer.IFrequencyLimit;
+import org.clever.notification.send.IFrequencyLimit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.RedisCallback;

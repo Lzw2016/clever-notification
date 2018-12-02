@@ -114,7 +114,7 @@ spring:
           multiplier: 1.5
           max-interval: 10000ms
         auto-startup: true
-        acknowledge-mode: auto
+        acknowledge-mode: manual
         prefetch: 8
         default-requeue-rejected: false
         idle-event-interval: 10s
@@ -130,7 +130,7 @@ spring:
           multiplier: 1.5
           max-interval: 10000ms
         auto-startup: true
-        acknowledge-mode: auto
+        acknowledge-mode: manual
         prefetch: 8
         default-requeue-rejected: false
         idle-event-interval: 10s

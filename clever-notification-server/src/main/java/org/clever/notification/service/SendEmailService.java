@@ -10,7 +10,7 @@ import org.clever.notification.entity.MessageSendLog;
 import org.clever.notification.entity.SysBindEmail;
 import org.clever.notification.mapper.SysBindEmailMapper;
 import org.clever.notification.model.EmailMessage;
-import org.clever.notification.rabbit.producer.IDistinctSendId;
+import org.clever.notification.send.IDistinctSendId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.stereotype.Service;

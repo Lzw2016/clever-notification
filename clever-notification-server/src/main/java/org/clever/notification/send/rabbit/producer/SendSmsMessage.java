@@ -1,12 +1,12 @@
-package org.clever.notification.rabbit.producer.impl;
+package org.clever.notification.send.rabbit.producer;
 
 import lombok.extern.slf4j.Slf4j;
 import org.clever.common.utils.SnowFlake;
 import org.clever.notification.model.SmsMessage;
-import org.clever.notification.rabbit.producer.BaseSendMessage;
-import org.clever.notification.rabbit.producer.IDistinctSendId;
-import org.clever.notification.rabbit.producer.IExcludeBlackList;
-import org.clever.notification.rabbit.producer.IFrequencyLimit;
+import org.clever.notification.send.BaseSendMessage;
+import org.clever.notification.send.IDistinctSendId;
+import org.clever.notification.send.IExcludeBlackList;
+import org.clever.notification.send.IFrequencyLimit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
