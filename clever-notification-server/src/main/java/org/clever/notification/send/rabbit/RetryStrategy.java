@@ -9,7 +9,7 @@ import java.util.Map;
  * 作者： lzw<br/>
  * 创建时间：2018-12-02 12:56 <br/>
  */
-@SuppressWarnings({"SameParameterValue", "WeakerAccess"})
+@SuppressWarnings({"SameParameterValue", "WeakerAccess", "unused"})
 public class RetryStrategy {
     /**
      * 一直保持5秒钟后重试
