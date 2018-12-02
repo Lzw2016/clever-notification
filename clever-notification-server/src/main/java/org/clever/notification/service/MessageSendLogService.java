@@ -8,6 +8,7 @@ import org.clever.notification.entity.MessageSendLog;
 import org.clever.notification.mapper.MessageSendLogMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -22,12 +23,12 @@ public class MessageSendLogService {
     @Autowired
     private MessageSendLogMapper messageSendLogMapper;
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void addMessageSendLog(MessageSendLog messageSendLog) {
         messageSendLogMapper.insert(messageSendLog);
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void updateMessageSendLog(MessageSendLog messageSendLog) {
         messageSendLogMapper.updateById(messageSendLog);
     }
