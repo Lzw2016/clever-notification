@@ -6,7 +6,10 @@ import com.baomidou.mybatisplus.extension.plugins.PerformanceInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.SqlExplainInterceptor;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
+import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.extern.slf4j.Slf4j;
 import org.clever.common.utils.SnowFlake;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
@@ -17,6 +20,8 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+
+import java.math.BigInteger;
 
 /**
  * 作者： lzw<br/>
@@ -117,8 +122,15 @@ public class BeanConfiguration {
         return template;
     }
 
-//    @Bean("redisTemplate")
-//    public RedisTemplate<Object, Object> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
-//
-//    }
+    /**
+     * JacksonAutoConfiguration 会自动注册此 Module
+     */
+    @Bean
+    public Module module() {
+        SimpleModule simpleModule = new SimpleModule();
+        simpleModule.addSerializer(BigInteger.class, ToStringSerializer.instance);
+        simpleModule.addSerializer(Long.class, ToStringSerializer.instance);
+        simpleModule.addSerializer(Long.TYPE, ToStringSerializer.instance);
+        return simpleModule;
+    }
 }
