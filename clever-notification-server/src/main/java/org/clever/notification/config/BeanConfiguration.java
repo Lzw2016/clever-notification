@@ -122,15 +122,15 @@ public class BeanConfiguration {
         return template;
     }
 
-    /**
-     * JacksonAutoConfiguration 会自动注册此 Module
-     */
-    @Bean
-    public Module module() {
-        SimpleModule simpleModule = new SimpleModule();
-        simpleModule.addSerializer(BigInteger.class, ToStringSerializer.instance);
-        simpleModule.addSerializer(Long.class, ToStringSerializer.instance);
-        simpleModule.addSerializer(Long.TYPE, ToStringSerializer.instance);
-        return simpleModule;
-    }
+//    /**
+//     * JacksonAutoConfiguration 会自动注册此 Module
+//     */
+//    @Bean
+//    public Module module() {
+//        SimpleModule simpleModule = new SimpleModule();
+//        simpleModule.addSerializer(BigInteger.class, ToStringSerializer.instance);
+//        simpleModule.addSerializer(Long.class, ToStringSerializer.instance);
+//        simpleModule.addSerializer(Long.TYPE, ToStringSerializer.instance);
+//        return simpleModule;
+//    }
 }

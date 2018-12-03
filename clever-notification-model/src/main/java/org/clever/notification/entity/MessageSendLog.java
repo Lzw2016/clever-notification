@@ -1,5 +1,6 @@
 package org.clever.notification.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -22,6 +23,7 @@ public class MessageSendLog implements Serializable {
     /**
      * 消息发送ID
      */
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Long sendId;
 
     /**
