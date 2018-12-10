@@ -76,6 +76,22 @@
             <groupId>com.aliyun</groupId>
             <artifactId>aliyun-java-sdk-dysmsapi</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.aliyun.mns</groupId>
+            <artifactId>aliyun-sdk-mns</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.aliyun.alicom</groupId>
+            <artifactId>alicom-mns-receive-sdk</artifactId>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/alicom-mns-receive-sdk-1.0.1.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>com.aliyun</groupId>
+            <artifactId>aliyun-java-sdk-dybaseapi</artifactId>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/aliyun-java-sdk-dybaseapi-1.0.0.jar</systemPath>
+        </dependency>
     </dependencies>
 
     <profiles>

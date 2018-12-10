@@ -63,8 +63,8 @@ spring:
   datasource: #----------------------------------------------------------- 数据库配置
     type: com.zaxxer.hikari.HikariDataSource
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/clever-notification
-    username: root
+    url: jdbc:mysql://39.108.68.132:3306/clever-notification
+    username: clever-notification
     password: lizhiwei
     hikari:
       data-source-properties:

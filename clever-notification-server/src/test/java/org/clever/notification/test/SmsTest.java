@@ -28,8 +28,8 @@ public class SmsTest {
     static final String domain = "dysmsapi.aliyuncs.com";
 
     // 此处需要替换成开发者自己的AK(在阿里云访问控制台寻找)
-    static final String accessKeyId = "";
-    static final String accessKeySecret = "";
+    static final String accessKeyId = "LTAIZaucWkMKPwX4";
+    static final String accessKeySecret = "kvqrgsWgwNeNQuCbd4G7swyfVo1lhP";
 
     public static SendSmsResponse sendSms() throws ClientException {
         //可自助调整超时时间
@@ -44,7 +44,7 @@ public class SmsTest {
         //组装请求对象-具体描述见控制台-文档部分内容
         SendSmsRequest request = new SendSmsRequest();
         //必填:待发送手机号
-        request.setPhoneNumbers("17607128210");
+        request.setPhoneNumbers("13260658831");
         //必填:短信签名-可在短信控制台中找到
         request.setSignName("Periscope");
         //必填:短信模板-可在短信控制台中找到
@@ -57,7 +57,6 @@ public class SmsTest {
 
         //可选:outId为提供给业务方扩展字段,最终在短信回执消息中将此值带回给调用者
         request.setOutId("yourOutId");
-
 
         //hint 此处可能会抛出异常，注意catch
         SendSmsResponse sendSmsResponse = acsClient.getAcsResponse(request);
@@ -97,7 +96,7 @@ public class SmsTest {
         //组装请求对象
         QuerySendDetailsRequest request = new QuerySendDetailsRequest();
         //必填-号码
-        request.setPhoneNumber("17607128210");
+        request.setPhoneNumber("13260658831");
         //可选-流水号
 //        request.setBizId(bizId);
         //必填-发送日期 支持30天内记录查询，格式yyyyMMdd

@@ -1,4 +1,4 @@
-create database if not exists `clever-notification` default character set = utf8mb4;
+create database if not exists `clever-notification` default character set = utf8;
 use `clever-notification`;
 
 
@@ -41,7 +41,6 @@ create table message_template
     primary key (id)
 ) comment = '消息模版';
 create index message_template_name on message_template (name);
-create index message_template_title on message_template (title);
 /*------------------------------------------------------------------------------------------------------------------------
 
 --------------------------------------------------------------------------------------------------------------------------*/

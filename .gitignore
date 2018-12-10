@@ -12,7 +12,8 @@ logs
 .mtj.tmp/
 
 # Package Files #
-*.jar
+
+!clever-notification-server/lib
 *.war
 *.ear
 *.zip
@@ -28,3 +29,4 @@ hs_err_pid*
 target
 .docker
 httpCache
+
