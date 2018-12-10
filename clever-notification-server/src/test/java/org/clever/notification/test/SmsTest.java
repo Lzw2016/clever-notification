@@ -62,9 +62,7 @@ public class SmsTest {
         request.setOutId("yourOutId");
 
         //hint 此处可能会抛出异常，注意catch
-        SendSmsResponse sendSmsResponse = acsClient.getAcsResponse(request);
-        acsClient.shutdown();
-        return sendSmsResponse;
+        return acsClient.getAcsResponse(request);
     }
 
     @Test
@@ -77,6 +75,14 @@ public class SmsTest {
         System.out.println("RequestId=" + response.getRequestId());
         System.out.println("BizId=" + response.getBizId());
 
+        response = sendSms();
+        System.out.println("短信接口返回的数据----------------");
+        System.out.println("Code=" + response.getCode());
+        System.out.println("Message=" + response.getMessage());
+        System.out.println("RequestId=" + response.getRequestId());
+        System.out.println("BizId=" + response.getBizId());
+        acsClient.shutdown();
+
 //        短信接口返回的数据----------------
 //        Code=OK
 //        Message=OK
@@ -86,7 +92,6 @@ public class SmsTest {
 
 
     public static QuerySendDetailsResponse querySendDetails() throws ClientException {
-
         //可自助调整超时时间
         System.setProperty("sun.net.client.defaultConnectTimeout", "10000");
         System.setProperty("sun.net.client.defaultReadTimeout", "10000");
