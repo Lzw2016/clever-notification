@@ -31,16 +31,19 @@ public class SmsTest {
     static final String accessKeyId = "LTAIZaucWkMKPwX4";
     static final String accessKeySecret = "kvqrgsWgwNeNQuCbd4G7swyfVo1lhP";
 
-    public static SendSmsResponse sendSms() throws ClientException {
+    //初始化acsClient,暂不支持 region 化
+    private static final IClientProfile profile = DefaultProfile.getProfile("cn-hangzhou", accessKeyId, accessKeySecret);
+    private static final IAcsClient acsClient = new DefaultAcsClient(profile);
+
+    static {
         //可自助调整超时时间
         System.setProperty("sun.net.client.defaultConnectTimeout", "10000");
         System.setProperty("sun.net.client.defaultReadTimeout", "10000");
 
-        //初始化acsClient,暂不支持 region 化
-        IClientProfile profile = DefaultProfile.getProfile("cn-hangzhou", accessKeyId, accessKeySecret);
         DefaultProfile.addEndpoint("cn-hangzhou", product, domain);
-        IAcsClient acsClient = new DefaultAcsClient(profile);
+    }
 
+    public static SendSmsResponse sendSms() throws ClientException {
         //组装请求对象-具体描述见控制台-文档部分内容
         SendSmsRequest request = new SendSmsRequest();
         //必填:待发送手机号

@@ -1,4 +1,4 @@
-package org.clever.notification.send.sms;
+package org.clever.notification.send.aliyun.sms;
 
 import com.alicom.mns.tools.MessageListener;
 import com.aliyun.mns.model.Message;
@@ -11,7 +11,7 @@ import lombok.extern.slf4j.Slf4j;
  * 创建时间：2018-12-10 15:49 <br/>
  */
 @Slf4j
-public class AliSmsReport implements MessageListener {
+public class SmsReport implements MessageListener {
 
     @Override
     public boolean dealMessage(Message message) {

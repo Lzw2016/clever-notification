@@ -3,7 +3,7 @@ package org.clever.notification.test;
 import com.alicom.mns.tools.DefaultAlicomMessagePuller;
 import com.aliyuncs.exceptions.ClientException;
 import lombok.extern.slf4j.Slf4j;
-import org.clever.notification.send.sms.AliSmsReport;
+import org.clever.notification.send.aliyun.sms.SmsReport;
 import org.junit.Test;
 
 import java.text.ParseException;
@@ -42,7 +42,7 @@ public class AliSmsReportTest {
         String messageType = "SmsReport";
         //在云通信页面开通相应业务消息后，就能在页面上获得对应的queueName,格式类似Alicom-Queue-xxxxxx-SmsReport
         String queueName = "Alicom-Queue-1597890179519684-SmsReport";
-        puller.startReceiveMsg(accessKeyId, accessKeySecret, messageType, queueName, new AliSmsReport());
+        puller.startReceiveMsg(accessKeyId, accessKeySecret, messageType, queueName, new SmsReport());
 
         Thread.sleep(1000 * 100);
         puller.stop();
