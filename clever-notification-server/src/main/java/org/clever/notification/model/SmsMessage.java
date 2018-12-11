@@ -7,9 +7,6 @@ import org.clever.common.exception.BusinessException;
 import org.clever.notification.entity.EnumConstant;
 import org.clever.notification.entity.MessageSendLog;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
 /**
  * 作者： lzw<br/>
  * 创建时间：2018-10-29 17:09 <br/>
@@ -21,7 +18,7 @@ public class SmsMessage extends BaseMessage {
     /**
      * 接收手机号
      */
-    private List<String> to;
+    private String to;
 
     /**
      * 设置消息内容
@@ -38,12 +35,7 @@ public class SmsMessage extends BaseMessage {
     @Override
     public void valid() {
         super.valid();
-        // 删除重复 删除空
-        if (to != null && to.size() > 0) {
-            to = to.stream().filter(StringUtils::isNotBlank).distinct().collect(Collectors.toList());
-        }
-        // 校验
-        if (to == null || to.size() <= 0) {
+        if (StringUtils.isBlank(to)) {
             throw new BusinessException("接收手机号，不能为空");
         }
     }

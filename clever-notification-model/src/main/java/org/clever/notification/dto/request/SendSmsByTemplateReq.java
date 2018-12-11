@@ -8,12 +8,7 @@ import org.clever.notification.dto.PatternConstant;
 import org.hibernate.validator.constraints.Length;
 
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
-import javax.validation.constraints.Size;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -44,9 +39,9 @@ public class SendSmsByTemplateReq extends BaseRequest {
     private Map<String, Object> params;
 
     @ApiModelProperty("接收手机号，不能为空")
-    @NotNull
-    @Size(min = 1, max = 500)
-    private List<String> to;
+    @NotBlank
+    @Pattern(regexp = PatternConstant.Telephone_Pattern)
+    private String to;
 
     public SendSmsByTemplateReq() {
 
@@ -60,9 +55,7 @@ public class SendSmsByTemplateReq extends BaseRequest {
     public SendSmsByTemplateReq(String sysName, String templateName, String to) {
         this.sysName = sysName;
         this.templateName = templateName;
-        this.to = new ArrayList<String>() {{
-            add(to);
-        }};
+        this.to = to;
     }
 
     /**
@@ -71,10 +64,10 @@ public class SendSmsByTemplateReq extends BaseRequest {
      * @param params       模板需要参数
      * @param to           接收手机号
      */
-    public SendSmsByTemplateReq(String sysName, String templateName, Map<String, Object> params, String... to) {
+    public SendSmsByTemplateReq(String sysName, String templateName, Map<String, Object> params, String to) {
         this.sysName = sysName;
         this.templateName = templateName;
         this.params = params;
-        this.to = Arrays.asList(to);
+        this.to = to;
     }
 }

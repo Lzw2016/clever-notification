@@ -12,6 +12,7 @@ import org.clever.notification.entity.ReceiverBlackList;
 import org.clever.notification.mapper.ReceiverBlackListMapper;
 import org.clever.notification.model.BaseMessage;
 import org.clever.notification.model.EmailMessage;
+import org.clever.notification.model.SmsMessage;
 import org.clever.notification.send.IExcludeBlackList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.connection.RedisConnection;
@@ -143,6 +144,9 @@ public class ReceiverBlackListService implements IExcludeBlackList {
         if (message instanceof EmailMessage) {
             EmailMessage emailMessage = removeBlackList((EmailMessage) message);
             return (T) emailMessage;
+        } else if (message instanceof SmsMessage) {
+            SmsMessage smsMessage = removeBlackList((SmsMessage) message);
+            return (T) smsMessage;
         } else {
             throw new BusinessException("不支持的消息类型: " + message.getClass().getName());
         }
@@ -173,6 +177,13 @@ public class ReceiverBlackListService implements IExcludeBlackList {
             throw new BusinessException("过滤黑名单之后没有消息接收者");
         }
         return emailMessage;
+    }
+
+    private SmsMessage removeBlackList(SmsMessage smsMessage) {
+        if (inBlackList(smsMessage.getSysName(), EnumConstant.MessageType_2, smsMessage.getTo())) {
+            throw new BusinessException("过滤黑名单之后没有消息接收者");
+        }
+        return smsMessage;
     }
 
     public IPage<ReceiverBlackList> findByPage(ReceiverBlackListQueryReq queryReq) {

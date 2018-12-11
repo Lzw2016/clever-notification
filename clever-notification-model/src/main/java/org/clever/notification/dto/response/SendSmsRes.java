@@ -5,8 +5,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.clever.common.model.response.BaseResponse;
 
-import java.util.List;
-
 /**
  * 作者： lzw<br/>
  * 创建时间：2018-10-31 21:45 <br/>
@@ -22,5 +20,5 @@ public class SendSmsRes extends BaseResponse {
     private String content;
 
     @ApiModelProperty("接收手机号")
-    private List<String> to;
+    private String to;
 }

@@ -9,19 +9,23 @@ import com.aliyuncs.dysmsapi.model.v20170525.SendSmsResponse;
 import com.aliyuncs.exceptions.ClientException;
 import com.aliyuncs.profile.DefaultProfile;
 import com.aliyuncs.profile.IClientProfile;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.clever.common.exception.BusinessException;
 import org.clever.common.utils.DateTimeUtils;
 import org.clever.common.utils.exception.ExceptionUtils;
 import org.clever.common.utils.mapper.JacksonMapper;
 
 import java.io.Closeable;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
  * 作者： lzw<br/>
  * 创建时间：2018-12-10 17:28 <br/>
  */
+@Slf4j
 public class SmsApiUtils implements Closeable {
     /**
      * 地域Region
@@ -35,6 +39,38 @@ public class SmsApiUtils implements Closeable {
      * 产品域名,开发者无需替换
      */
     private static final String DOMAIN = "dysmsapi.aliyuncs.com";
+
+    /**
+     * 错误信息
+     */
+    private static final Map<String, String> ErrorMap = new HashMap<String, String>() {{
+        put("isp.RAM_PERMISSION_DENY", "RAM权限DENY");
+        put("isv.OUT_OF_SERVICE", "业务停机");
+        put("isv.PRODUCT_UN_SUBSCRIPT", "未开通云通信产品的阿里云客户");
+        put("isv.PRODUCT_UNSUBSCRIBE", "产品未开通");
+        put("isv.ACCOUNT_NOT_EXISTS", "账户不存在");
+        put("isv.ACCOUNT_ABNORMAL", "账户异常");
+        put("isv.SMS_TEMPLATE_ILLEGAL", "短信模版不合法");
+        put("isv.SMS_SIGNATURE_ILLEGAL", "短信签名不合法");
+        put("isv.INVALID_PARAMETERS", "参数异常");
+        put("isp.SYSTEM_ERROR", "请重试接口调用，如仍存在此情况请创建工单反馈工程师查看");
+        put("isv.MOBILE_NUMBER_ILLEGAL", "非法手机号");
+        put("isv.MOBILE_COUNT_OVER_LIMIT", "手机号码数量超过限制");
+        put("isv.TEMPLATE_MISSING_PARAMETERS", "模版缺少变量");
+        put("isv.BUSINESS_LIMIT_CONTROL", "业务限流");
+        put("isv.INVALID_JSON_PARAM", "JSON参数不合法");
+        put("isv.BLACK_KEY_CONTROL_LIMIT", "黑名单管控");
+        put("isv.PARAM_LENGTH_LIMIT", "参数超出长度限制");
+        put("isv.PARAM_NOT_SUPPORT_URL", "不支持URL");
+        put("isv.AMOUNT_NOT_ENOUGH", "账户余额不足");
+        put("isv.TEMPLATE_PARAMS_ILLEGAL", "模版变量里包含非法关键字");
+        put("SignatureDoesNotMatch", "Signature加密错误");
+        put("InvalidTimeStamp.Expired", "时间戳错误");
+        put("SignatureNonceUsed", "唯一随机数重复");
+        put("InvalidVersion", "版本号错误");
+        put("InvalidAction.NotFound", "接口名错误");
+    }};
+
 
     static {
         System.setProperty("sun.net.client.defaultConnectTimeout", "10000");
@@ -83,8 +119,19 @@ public class SmsApiUtils implements Closeable {
         if (StringUtils.isNotBlank(outId)) {
             request.setOutId(outId);
         }
+        // 发送短信
         try {
-            return acsClient.getAcsResponse(request);
+            SendSmsResponse sendSmsResponse = acsClient.getAcsResponse(request);
+            String error = ErrorMap.get(sendSmsResponse.getCode());
+            if (error != null) {
+                String res = "RequestId=" + sendSmsResponse.getRequestId() + " | "
+                        + "BizId=" + sendSmsResponse.getBizId() + " | "
+                        + "Code=" + sendSmsResponse.getCode() + " | "
+                        + "Message=" + sendSmsResponse.getMessage() + " | ";
+                log.error("### {}", res);
+                throw new BusinessException("短信发送失败: " + error);
+            }
+            return sendSmsResponse;
         } catch (ClientException e) {
             throw ExceptionUtils.unchecked(e);
         }

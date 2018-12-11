@@ -211,7 +211,6 @@ mybatis-plus:
   executor-type: reuse
   global-config:
     banner: true
-    refresh: true
     sql-parser-cache: true
     db-config:
       id-type: auto
@@ -231,3 +230,9 @@ clever:
     snow-flake-config:
       data-center-id: 0
       machine-id: 0
+    aliyun-sms-config:
+      access-key-id: LTAIZaucWkMKPwX4
+      access-key-secret: kvqrgsWgwNeNQuCbd4G7swyfVo1lhP
+      sign-name: Periscope
+      template-names:
+      - SMS_149418310

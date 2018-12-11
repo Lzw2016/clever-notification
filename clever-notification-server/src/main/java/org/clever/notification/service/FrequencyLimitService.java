@@ -17,6 +17,7 @@ import org.clever.notification.entity.FrequencyLimit;
 import org.clever.notification.mapper.FrequencyLimitMapper;
 import org.clever.notification.model.BaseMessage;
 import org.clever.notification.model.EmailMessage;
+import org.clever.notification.model.SmsMessage;
 import org.clever.notification.send.IFrequencyLimit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.connection.RedisConnection;
@@ -268,6 +269,9 @@ public class FrequencyLimitService implements IFrequencyLimit {
         if (message instanceof EmailMessage) {
             EmailMessage emailMessage = removeFrequencyLimit((EmailMessage) message);
             return (T) emailMessage;
+        } else if (message instanceof SmsMessage) {
+            SmsMessage smsMessage = removeFrequencyLimit((SmsMessage) message);
+            return (T) smsMessage;
         } else {
             throw new BusinessException("不支持的消息类型: " + message.getClass().getName());
         }
@@ -300,12 +304,22 @@ public class FrequencyLimitService implements IFrequencyLimit {
         return emailMessage;
     }
 
+    private SmsMessage removeFrequencyLimit(SmsMessage smsMessage) {
+        if (frequencyLimit(smsMessage.getSysName(), EnumConstant.MessageType_2, smsMessage.getTo())) {
+            throw new BusinessException("发送频率限制之后没有消息接收者");
+        }
+        return smsMessage;
+    }
+
     @SuppressWarnings("unchecked")
     @Override
     public <T extends BaseMessage> T addFrequency(T message) {
         if (message instanceof EmailMessage) {
             EmailMessage emailMessage = addFrequency((EmailMessage) message);
             return (T) emailMessage;
+        } else if (message instanceof SmsMessage) {
+            SmsMessage smsMessage = addFrequency((SmsMessage) message);
+            return (T) smsMessage;
         } else {
             throw new BusinessException("不支持的消息类型: " + message.getClass().getName());
         }
@@ -327,6 +341,19 @@ public class FrequencyLimitService implements IFrequencyLimit {
             return null;
         });
         return emailMessage;
+    }
+
+    private SmsMessage addFrequency(SmsMessage smsMessage) {
+        Set<String> accountSet = new HashSet<>(1);
+        accountSet.add(smsMessage.getTo());
+        redisTemplate.executePipelined((RedisCallback<Void>) connection -> {
+            for (String account : accountSet) {
+                FrequencyLimitCount frequencyLimitCount = existsConfig(smsMessage.getSysName(), EnumConstant.MessageType_2, account);
+                addFrequency(connection, frequencyLimitCount, smsMessage.getSysName(), EnumConstant.MessageType_2, account);
+            }
+            return null;
+        });
+        return smsMessage;
     }
 
     /**

@@ -16,7 +16,7 @@ import java.io.IOException;
 @Slf4j
 public abstract class RetryConsumer<T extends BaseMessage> {
 
-    public static enum Action {
+    public enum Action {
         /**
          * 任务已完成(删除消息)
          */

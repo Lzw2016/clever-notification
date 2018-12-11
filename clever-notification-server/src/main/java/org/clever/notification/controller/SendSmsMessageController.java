@@ -2,7 +2,9 @@ package org.clever.notification.controller;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import org.clever.common.exception.BusinessException;
 import org.clever.common.utils.mapper.BeanMapper;
+import org.clever.notification.config.GlobalConfig;
 import org.clever.notification.dto.request.SendSmsByTemplateReq;
 import org.clever.notification.dto.response.SendSmsRes;
 import org.clever.notification.model.SmsMessage;
@@ -26,19 +28,21 @@ public class SendSmsMessageController {
     @Autowired
     private SendSmsMessage sendSmsMessage;
 
+    private final GlobalConfig.AliyunSmsConfig aliyunSmsConfig;
+
+    protected SendSmsMessageController(GlobalConfig globalConfig) {
+        aliyunSmsConfig = globalConfig.getAliyunSmsConfig();
+    }
+
     @ApiOperation("发送短信(使用模版)")
     @PostMapping("/send/sms/template")
     public SendSmsRes sendSms(@RequestBody @Validated SendSmsByTemplateReq req) {
         SmsMessage smsMessage = BeanMapper.mapper(req, SmsMessage.class);
         smsMessage.valid();
-//        // TODO 校验消息模版是否存在
-//        if (!messageTemplateService.templateExists(emailMessage.getTemplateName())) {
-//            throw new BusinessException("消息模板不存在");
-//        }
-//        // TODO 验证发送短信帐号是否已经配置
-//        if (!sendEmailService.sendMailUtilsExists(emailMessage.getSysName())) {
-//            throw new BusinessException("验证发送短信帐号未配置");
-//        }
+        // 校验消息模版是否存在
+        if (!aliyunSmsConfig.getTemplateNames().contains(req.getTemplateName())) {
+            throw new BusinessException("消息模板不存在");
+        }
         if (req.isAsync()) {
             // 异步
             smsMessage = sendSmsMessage.asyncSend(smsMessage);
@@ -48,5 +52,4 @@ public class SendSmsMessageController {
         }
         return BeanMapper.mapper(smsMessage, SendSmsRes.class);
     }
-
 }

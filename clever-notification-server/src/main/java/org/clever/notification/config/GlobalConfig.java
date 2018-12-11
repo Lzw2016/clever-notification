@@ -4,6 +4,8 @@ import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 /**
  * 作者： lzw<br/>
  * 创建时间：2017-12-04 12:44 <br/>
@@ -48,8 +50,14 @@ public class GlobalConfig {
      */
     private long distinctSendIdMaxTime = 60 * 60 * 2;
 
+    /**
+     * 阿里云Sms配置
+     */
+    private AliyunSmsConfig aliyunSmsConfig;
+
     @Data
     public static class SnowFlakeConfig {
+
         /**
          * 数据库中心 0 -- 32
          */
@@ -59,5 +67,21 @@ public class GlobalConfig {
          * 机器ID 0 -- 32
          */
         private long machineId = 0;
+    }
+
+    @Data
+    public static class AliyunSmsConfig {
+        private String accessKeyId;
+        private String accessKeySecret;
+
+        /**
+         * 短信签名
+         */
+        private String signName;
+
+        /**
+         * 模版名称
+         */
+        private List<String> templateNames;
     }
 }
