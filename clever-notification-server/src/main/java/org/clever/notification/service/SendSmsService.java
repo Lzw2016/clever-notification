@@ -79,7 +79,7 @@ public class SendSmsService {
                         Long sendId = NumberUtils.toLong(smsReceiveData.getOutId(), -1L);
                         Integer receiveState = smsReceiveData.getSuccess() ? EnumConstant.ReceiveState_3 : EnumConstant.ReceiveState_2;
                         String receiveMsg = smsReceiveData.getErrMsg();
-                        messageSendLogService.updateReceiveState(sendId, receiveState, receiveMsg);
+                        messageSendLogService.updateReceiveState(sendId, receiveState, receiveMsg, smsReceiveData.getReportTime());
                     }));
         } catch (Throwable e) {
             throw ExceptionUtils.unchecked(e);

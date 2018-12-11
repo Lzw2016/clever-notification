@@ -67,6 +67,11 @@ public class MessageSendLog implements Serializable {
     private String receiveMsg;
 
     /**
+     * 接收时间
+     */
+    private Date receiveTime;
+
+    /**
      * 发送时间
      */
     private Date sendTime;

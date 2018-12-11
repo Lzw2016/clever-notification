@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Date;
+
 /**
  * 作者： lzw<br/>
  * 创建时间：2018-11-09 23:13 <br/>
@@ -34,7 +36,7 @@ public class MessageSendLogService {
     }
 
     @Transactional
-    public void updateReceiveState(Long sendId, Integer receiveState, String receiveMsg) {
+    public void updateReceiveState(Long sendId, Integer receiveState, String receiveMsg, Date receiveTime) {
         MessageSendLog messageSendLog = messageSendLogMapper.getBySendId(sendId);
         if (messageSendLog == null) {
             return;
@@ -43,6 +45,7 @@ public class MessageSendLogService {
         update.setId(messageSendLog.getId());
         update.setReceiveState(receiveState);
         update.setReceiveMsg(receiveMsg);
+        update.setReceiveTime(receiveTime);
         messageSendLogMapper.updateById(update);
     }
 
