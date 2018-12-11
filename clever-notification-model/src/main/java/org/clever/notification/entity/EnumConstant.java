@@ -32,6 +32,21 @@ public class EnumConstant {
     public static final Integer SendState_3 = 3;
 
     /**
+     * 接收状态，1：未知
+     */
+    public static final Integer ReceiveState_1 = 1;
+
+    /**
+     * 接收状态，2：接收失败
+     */
+    public static final Integer ReceiveState_2 = 2;
+
+    /**
+     * 接收状态，3：接收成功
+     */
+    public static final Integer ReceiveState_3 = 3;
+
+    /**
      * 全局系统名
      */
     public static final String RootSysName = "root";

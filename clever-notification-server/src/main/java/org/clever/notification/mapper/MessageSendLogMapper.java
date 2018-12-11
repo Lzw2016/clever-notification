@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
 import org.clever.notification.dto.request.MessageSendLogQueryReq;
 import org.clever.notification.entity.MessageSendLog;
 import org.springframework.stereotype.Repository;
@@ -19,4 +20,7 @@ import java.util.List;
 public interface MessageSendLogMapper extends BaseMapper<MessageSendLog> {
 
     List<MessageSendLog> findByPage(@Param("query") MessageSendLogQueryReq query, IPage page);
+
+    @Select("select * from message_send_log where send_id=#{sendId}")
+    MessageSendLog getBySendId(@Param("sendId") Long sendId);
 }

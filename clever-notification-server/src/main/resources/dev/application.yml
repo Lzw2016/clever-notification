@@ -233,6 +233,7 @@ clever:
     aliyun-sms-config:
       access-key-id: LTAIZaucWkMKPwX4
       access-key-secret: kvqrgsWgwNeNQuCbd4G7swyfVo1lhP
+      receive-queue-name: Alicom-Queue-1597890179519684-SmsReport
       sign-name: Periscope
       template-names:
       - SMS_149418310

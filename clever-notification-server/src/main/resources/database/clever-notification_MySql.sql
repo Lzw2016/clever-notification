@@ -83,6 +83,8 @@ create table message_send_log
     message_object  MediumText                                                              comment '消息对象Json字符串',
     send_state      int(1)          not null        default 1                               comment '发送状态，1：发送中；2：发送失败；3：发送成功',
     fail_reason     varchar(511)                                                            comment '发送失败原因',
+    receive_state   int(1)          not null        default 1                               comment '接收状态，1：未知；2：接收失败；3：接收成功',
+    receive_msg     varchar(511)                                                            comment '接收状态描述',
     send_time       datetime(3)     not null                                                comment '发送时间',
     use_time        int                                                                     comment '发送消息耗时(毫秒)',
     create_at       datetime(3)     not null        default current_timestamp(3)            comment '创建时间',

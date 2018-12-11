@@ -75,6 +75,11 @@ public class GlobalConfig {
         private String accessKeySecret;
 
         /**
+         * 短信接收状态通知队列
+         */
+        private String ReceiveQueueName;
+
+        /**
          * 短信签名
          */
         private String signName;

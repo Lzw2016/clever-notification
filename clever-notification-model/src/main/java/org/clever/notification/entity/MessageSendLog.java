@@ -57,6 +57,16 @@ public class MessageSendLog implements Serializable {
     private String failReason;
 
     /**
+     * 接收状态，1：未知；2：接收失败；3：接收成功
+     */
+    private Integer receiveState;
+
+    /**
+     * 接收状态描述
+     */
+    private String receiveMsg;
+
+    /**
      * 发送时间
      */
     private Date sendTime;

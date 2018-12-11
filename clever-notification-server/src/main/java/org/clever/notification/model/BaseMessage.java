@@ -113,6 +113,7 @@ public abstract class BaseMessage implements Serializable {
         messageSendLog.setTemplateName(getTemplateName());
         messageSendLog.setMessageObject(JacksonMapper.nonEmptyMapper().toJson(this));
         messageSendLog.setSendState(EnumConstant.SendState_1);
+        messageSendLog.setReceiveState(EnumConstant.ReceiveState_1);
         return messageSendLog;
     }
 }

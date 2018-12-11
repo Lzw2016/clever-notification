@@ -33,6 +33,19 @@ public class MessageSendLogService {
         messageSendLogMapper.updateById(messageSendLog);
     }
 
+    @Transactional
+    public void updateReceiveState(Long sendId, Integer receiveState, String receiveMsg) {
+        MessageSendLog messageSendLog = messageSendLogMapper.getBySendId(sendId);
+        if (messageSendLog == null) {
+            return;
+        }
+        MessageSendLog update = new MessageSendLog();
+        update.setId(messageSendLog.getId());
+        update.setReceiveState(receiveState);
+        update.setReceiveMsg(receiveMsg);
+        messageSendLogMapper.updateById(update);
+    }
+
     public IPage<MessageSendLog> findByPage(MessageSendLogQueryReq queryReq) {
         Page<MessageSendLog> page = new Page<>(queryReq.getPageNo(), queryReq.getPageSize());
         page.setRecords(messageSendLogMapper.findByPage(queryReq, page));
