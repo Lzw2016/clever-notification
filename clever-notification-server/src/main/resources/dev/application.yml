@@ -138,8 +138,8 @@ spring:
 
   redis: #---------------------------------------------------------------- Redis配置
     ssl: false
-    host: '127.0.0.1'
-    port: 6379
+    host: 39.108.68.132
+    port: 16379
     timeout: 1s
     database: 0
     lettuce:
@@ -147,8 +147,8 @@ spring:
         max-active: 16
         max-idle: 8
         min-idle: 1
-        max-wait: 1s
-      shutdown-timeout: 100ms
+        max-wait: 10s
+      shutdown-timeout: 1000ms
 
   cloud: #------------------------------------------------------------ Spring Cloud
     consul:
